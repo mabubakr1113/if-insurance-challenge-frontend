@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { actorLabel, currentPath, getMe, isPrintPath } from '@/lib/guards';
-import { btn, btnSecondary, btnSmall } from './styles';
+import { btnSecondary, btnSmall } from './styles';
+import { StartDemoLink } from './start-demo-link';
 
 export async function SiteHeader() {
   if (isPrintPath(await currentPath())) return null;
@@ -34,9 +35,7 @@ export async function SiteHeader() {
             </Link>
           </div>
         ) : (
-          <Link href="/demo" className={`${btn} ${btnSmall}`}>
-            Try the demo
-          </Link>
+          <StartDemoLink small />
         )}
       </div>
     </header>

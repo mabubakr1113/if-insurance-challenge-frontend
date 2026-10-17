@@ -1,4 +1,5 @@
 import { ButtonLink, Card } from '@/components/ui';
+import { StartDemoLink } from '@/components/start-demo-link';
 
 const PROBLEMS = [
   { title: 'Nobody owns the house.', body: 'Each sibling assumes another will go.' },
@@ -37,11 +38,12 @@ export default function LandingPage() {
           If Home Watch helps the family share the care: what needs doing, who’s on it, and help when nobody can go.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <ButtonLink href="/demo">Try the demo</ButtonLink>
+          <StartDemoLink />
           <ButtonLink href="#how" variant="secondary">
             How it works
           </ButtonLink>
         </div>
+        <p className="mt-3 text-sm text-muted">No signup or login needed. Explore a home with sample tasks, visits and photos.</p>
       </section>
 
       <section aria-labelledby="problem">
@@ -128,7 +130,7 @@ export default function LandingPage() {
           The family knows who is looking after the house, and can get help when nobody can go.
         </p>
         <div className="mt-5">
-          <ButtonLink href="/demo">Try the demo</ButtonLink>
+          <StartDemoLink />
         </div>
       </section>
     </div>
