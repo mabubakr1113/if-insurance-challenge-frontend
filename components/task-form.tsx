@@ -14,7 +14,7 @@ export function NewTaskForm({ homeId, owners, meId, inDialog = false }: { homeId
       <Field label="Title" name="title">
         <input id="title" name="title" className={input} maxLength={120} placeholder="e.g. Move the car into the garage" />
       </Field>
-      <Field label="Why it matters" name="why" optional>
+      <Field label="Why it matters" name="why" hint="Optional">
         <textarea id="why" name="why" className={`${textareaBase} min-h-[76px]`} maxLength={2000} />
       </Field>
       <ChipGroup

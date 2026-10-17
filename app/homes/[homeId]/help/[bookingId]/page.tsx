@@ -150,7 +150,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<'/
                 width="sm"
               >
                 <ActionForm action={cancelBooking.bind(null, b.id)} className="flex flex-col gap-3.5">
-                  <Field label="Reason" name="reason">
+                  <Field label={<span className="sr-only">Reason</span>} name="reason">
                     <input id="reason" name="reason" className={input} maxLength={1000} placeholder="Reason, e.g. Mikko can go on Saturday" />
                   </Field>
                   <DialogActions>

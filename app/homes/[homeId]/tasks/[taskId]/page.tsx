@@ -121,7 +121,7 @@ export default async function TaskPage({ params, searchParams }: PageProps<'/hom
                   Note
                 </label>
                 <textarea id="note" name="note" className={textarea} maxLength={2000} placeholder="What did you do or see? (optional)" />
-                <PhotoPicker homeId={homeId} showLabel={false} />
+                <PhotoPicker homeId={homeId} showLabel={false} size="sm" />
                 <div className="flex gap-2">
                   <SubmitButton pendingText="Saving…">Mark as done</SubmitButton>
                   <Link href={here} scroll={false} className={button('quiet', 'md', 'px-3.5')}>
@@ -277,9 +277,10 @@ export default async function TaskPage({ params, searchParams }: PageProps<'/hom
                   triggerVariant="quiet"
                   triggerSize="sm"
                   triggerClassName="w-full"
+                  width={532}
                 >
                   <ActionForm action={declineTask.bind(null, t.id)} className="flex flex-col gap-3.5">
-                    <Field label="Reason" name="reason">
+                    <Field label={<span className="sr-only">Reason</span>} name="reason">
                       <input id="reason" name="reason" className={input} maxLength={1000} placeholder="For example: I’m abroad until November" />
                     </Field>
                     <DialogActions>
@@ -315,7 +316,7 @@ export default async function TaskPage({ params, searchParams }: PageProps<'/hom
             <Field label="Title" name="title">
               <input id="title" name="title" className={input} defaultValue={t.title} maxLength={120} />
             </Field>
-            <Field label="Why it matters" name="why" optional>
+            <Field label="Why it matters" name="why" hint="Optional">
               <textarea id="why" name="why" className={textarea} defaultValue={t.why ?? ''} maxLength={2000} />
             </Field>
             <ChipGroup
