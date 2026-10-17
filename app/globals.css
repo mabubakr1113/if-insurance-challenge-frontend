@@ -44,3 +44,14 @@ body {
     display: none !important;
   }
 }
+
+/* Setup step 1: choosing "someone lives there" swaps the rest of the step for an explanation. No JS needed. */
+.if-occupied {
+  display: none;
+}
+.occupancy-step:has(input[name="occupancy"][value="occupied"]:checked) .if-occupied {
+  display: block;
+}
+.occupancy-step:has(input[name="occupancy"][value="occupied"]:checked) .if-empty {
+  display: none;
+}
