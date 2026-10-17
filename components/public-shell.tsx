@@ -49,9 +49,6 @@ export function SiteFooter() {
           bookings are simulated. Not an If service.
         </p>
         <nav aria-label="Footer" className="flex gap-4 font-semibold">
-          <Link href="/#how" className="hover:text-ink">
-            How it works
-          </Link>
           <Link href="/demo" className="hover:text-ink">
             Demo
           </Link>
