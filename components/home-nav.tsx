@@ -8,6 +8,8 @@ export interface NavItem {
   label: string;
   badge?: number;
   badgeLabel?: string;
+  /** Other path prefixes that belong to this item, e.g. task pages under Plan. */
+  also?: string[];
 }
 
 /** The home navigation (6.3). Scrolls sideways on narrow screens. */
@@ -18,7 +20,7 @@ export function HomeNav({ items }: { items: NavItem[] }) {
     <nav aria-label="Home" className="-mx-4 overflow-x-auto px-4">
       <ul className="flex min-w-max gap-1 border-b border-line">
         {items.map((item) => {
-          const active = item.href === overview ? pathname === item.href : pathname.startsWith(item.href);
+          const active = item.href === overview ? pathname === item.href : [item.href, ...(item.also ?? [])].some((p) => pathname.startsWith(p));
           return (
             <li key={item.href}>
               <Link

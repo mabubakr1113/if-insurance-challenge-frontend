@@ -42,7 +42,7 @@ export function Card({
   as?: 'section' | 'div' | 'article';
 }) {
   return (
-    <As id={id} className={`rounded-2xl border border-line bg-card p-5 shadow-xs ${className}`}>
+    <As id={id} className={`min-w-0 rounded-2xl border border-line bg-card p-5 shadow-xs ${className}`}>
       {title || action ? (
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           {title ? <h2 className="text-lg font-semibold">{title}</h2> : <span />}

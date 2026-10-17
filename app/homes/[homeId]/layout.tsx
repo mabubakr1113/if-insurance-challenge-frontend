@@ -15,7 +15,7 @@ export default async function HomeLayout({ children, params }: LayoutProps<'/hom
   const base = `/homes/${homeId}`;
   const items = [
     { href: base, label: 'Overview' },
-    { href: `${base}/plan`, label: 'Plan', badge: dashboard.counts.needsOwner, badgeLabel: 'need an owner' },
+    { href: `${base}/plan`, label: 'Plan', badge: dashboard.counts.needsOwner, badgeLabel: 'need an owner', also: [`${base}/tasks`] },
     { href: `${base}/visits`, label: 'Visits' },
     { href: `${base}/notes`, label: 'House notes', badge: dashboard.essentialsMissing.length, badgeLabel: 'essentials missing' },
     { href: `${base}/weather`, label: 'Weather' },
