@@ -1,4 +1,5 @@
 import type {
+  AccessMethod,
   Booking,
   BookingStatus,
   BuildingType,
@@ -110,6 +111,14 @@ export const BOOKING_STATUS: Record<BookingStatus, string> = {
   completed: 'Done',
   cancelled: 'Cancelled',
   declined: 'Declined',
+};
+
+/** The booking form takes these from `BookingOptions`; pages that show a saved booking use this copy. */
+export const ACCESS_METHOD: Record<AccessMethod, string> = {
+  key_holder_meets: 'A family member or the key holder meets the partner',
+  key_box: 'Key in a key box (code given to the partner)',
+  partner_collects_key: 'Partner collects the key from someone nearby',
+  other: 'Other arrangement',
 };
 
 export const WEATHER_RULE: Record<WeatherRule, string> = {
