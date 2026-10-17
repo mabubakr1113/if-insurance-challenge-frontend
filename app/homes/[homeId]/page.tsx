@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AutoRefresh } from '@/components/auto-refresh';
+import { HomeMap } from '@/components/home-map';
 import { HomeSummaryDrawer } from '@/components/home-summary-drawer';
 import { Icon } from '@/components/icons';
 import { h1, row, rowHover } from '@/components/styles';
@@ -151,6 +152,7 @@ export default async function OverviewPage({ params, searchParams }: PageProps<'
           ) : null}
         </aside>
       </div>
+      <HomeMap key={`${homeId}:${d.home.lat}:${d.home.lng}`} lat={d.home.lat} lng={d.home.lng} address={d.home.addressLine} city={d.home.city} />
     </div>
   );
 }
