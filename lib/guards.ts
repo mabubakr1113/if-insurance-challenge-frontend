@@ -14,6 +14,9 @@ export async function currentPath(): Promise<string> {
   return (await headers()).get('x-pathname') ?? '/';
 }
 
+/** The print view of the home record has no site chrome. Reached by a full page load. */
+export const isPrintPath = (path: string) => /\/record\/print(?:$|\?)/.test(path);
+
 /** Only internal paths, never `//host` or a full URL. */
 export function safeNext(next: string | null | undefined): string | null {
   if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return null;
