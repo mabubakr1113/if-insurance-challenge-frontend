@@ -15,6 +15,7 @@ const PATHS = {
   partner: 'M3 7h18v13H3zM8 7V4h8v3',
   insights: 'M4 20V10M10 20V4M16 20v-7M22 20H2',
   plus: 'M12 5v14M5 12h14',
+  sparkles: 'M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3zM20 2v4M18 4h4',
   back: 'M15 6l-6 6 6 6',
   next: 'M9 6l6 6-6 6',
   down: 'M6 9l6 6 6-6',
