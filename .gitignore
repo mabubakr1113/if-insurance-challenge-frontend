@@ -1,12 +1,30 @@
+# dependencies
 node_modules/
+/.pnp
+.pnp.*
+
+# builds
+/.next/
+/out/
 dist/
 build/
-.next/
+coverage/
+
+# env files
 .env
 .env.*
 !.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# misc
 .DS_Store
+*.pem
 *.log
-coverage/
 .vscode/
 .idea/
