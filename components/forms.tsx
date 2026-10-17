@@ -197,6 +197,7 @@ export function Field({
   children,
   optional,
   htmlFor,
+  small,
   className = '',
 }: {
   label: ReactNode;
@@ -205,6 +206,8 @@ export function Field({
   children: ReactNode;
   optional?: boolean;
   htmlFor?: string;
+  /** A 13px label, for compact side-by-side fields. */
+  small?: boolean;
   className?: string;
 }) {
   const { state } = useFormState();
@@ -212,7 +215,7 @@ export function Field({
   const error = state.fieldErrors?.[name];
   return (
     <div className={`flex min-w-0 flex-col gap-1.5 ${className}`} data-invalid={error ? 'true' : undefined}>
-      <label htmlFor={htmlFor ?? name} className={labelClass}>
+      <label htmlFor={htmlFor ?? name} className={small ? 'text-[13px] font-semibold text-ink' : labelClass}>
         {label}
         {optional ? <span className="font-normal text-muted"> (optional)</span> : null}
       </label>

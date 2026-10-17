@@ -22,12 +22,13 @@ export function ChipGroup({
   defaultValue?: string | null;
   hint?: ReactNode;
   size?: ChipSize;
-  legendSize?: 'sm' | 'md';
+  /** `hidden`: the chips speak for themselves; the legend is for screen readers only. */
+  legendSize?: 'sm' | 'md' | 'hidden';
   className?: string;
 }) {
   return (
     <fieldset className={`flex min-w-0 flex-col gap-2.5 ${className}`}>
-      <legend className={`mb-2.5 font-semibold ${legendSize === 'md' ? 'text-[15px]' : 'text-sm'}`}>{legend}</legend>
+      <legend className={legendSize === 'hidden' ? 'sr-only' : `font-semibold ${legendSize === 'md' ? 'mb-2.5 text-[15px]' : 'mb-2 text-sm'}`}>{legend}</legend>
       {hint ? <p className={`-mt-1.5 ${hintClass}`}>{hint}</p> : null}
       <div className={`flex flex-wrap ${size === 'sm' ? 'gap-1.5' : 'gap-2'}`}>
         {choices.map((c) => (
@@ -61,9 +62,9 @@ export function Checkbox({
   className?: string;
 }) {
   return (
-    <label className={`flex cursor-pointer items-start gap-2.5 text-ink ${size === 'sm' ? 'text-[13px] leading-[1.4]' : 'text-sm'} ${className}`}>
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} disabled={disabled} className={`${checkbox} ${size === 'sm' ? 'hw-check-sm' : ''} mt-px`} />
-      <span className="flex flex-col gap-0.5 pt-px">
+    <label className={`flex cursor-pointer gap-2.5 text-ink ${description ? 'items-start' : 'items-center'} ${size === 'sm' ? 'text-[13px] leading-[1.4]' : 'text-sm'} ${className}`}>
+      <input type="checkbox" name={name} defaultChecked={defaultChecked} disabled={disabled} className={`${checkbox} ${size === 'sm' ? 'hw-check-sm' : ''} ${description ? 'mt-px' : ''}`} />
+      <span className={`flex flex-col gap-0.5 ${description ? 'pt-px' : ''}`}>
         <span>{children}</span>
         {description ? <span className="text-[13px] text-muted">{description}</span> : null}
       </span>

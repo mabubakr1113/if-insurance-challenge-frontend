@@ -157,8 +157,16 @@ export function ListBox({ children, className = '', as: As = 'div', 'aria-label'
 
 /* ---------------- small parts ---------------- */
 
-export function Badge({ tone = 'neutral', size = 'sm', children, className = '' }: { tone?: Tone; size?: 'sm' | 'md'; children: ReactNode; className?: string }) {
-  const s = size === 'sm' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-[3px] text-xs';
+const BADGE_SIZE = {
+  sm: 'px-2 py-0.5 text-[11px]',
+  /** Checklist results in a visit report. */
+  row: 'px-2.5 py-0.5 text-xs',
+  md: 'px-2.5 py-[3px] text-xs',
+  lg: 'px-3 py-1 text-xs',
+};
+
+export function Badge({ tone = 'neutral', size = 'sm', children, className = '' }: { tone?: Tone; size?: keyof typeof BADGE_SIZE; children: ReactNode; className?: string }) {
+  const s = BADGE_SIZE[size];
   return <span className={`inline-flex shrink-0 items-center rounded-full font-bold whitespace-nowrap ${s} ${TONE[tone]} ${className}`}>{children}</span>;
 }
 
@@ -204,9 +212,22 @@ export function Notice({
 }
 
 /** Dashed empty state: Newsreader title, one muted line and an optional action. */
-export function Empty({ title, children, action, className = '' }: { title?: ReactNode; children?: ReactNode; action?: ReactNode; className?: string }) {
+export function Empty({
+  title,
+  children,
+  action,
+  tall = false,
+  className = '',
+}: {
+  title?: ReactNode;
+  children?: ReactNode;
+  action?: ReactNode;
+  /** 56px of padding instead of 48px: the empty care plan and visits pages. */
+  tall?: boolean;
+  className?: string;
+}) {
   return (
-    <div className={`flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line-input px-6 py-12 text-center ${className}`}>
+    <div className={`flex flex-col items-center gap-2 rounded-2xl border border-dashed border-line-input px-6 text-center ${tall ? 'py-14' : 'py-12'} ${className}`}>
       {title ? <p className="font-display text-2xl">{title}</p> : null}
       {children ? <div className="max-w-[440px] text-sm text-muted">{children}</div> : null}
       {action ? <div className="mt-1.5">{action}</div> : null}
@@ -271,11 +292,11 @@ export function Stat({ label, value, hint, tone = 'card' }: { label: ReactNode; 
 }
 
 /** Label/value facts. `stack` puts the label above (rails); `grid` puts it beside (cards). Empty values say "Not answered". */
-export function Facts({ items, layout = 'grid' }: { items: [ReactNode, ReactNode][]; layout?: 'stack' | 'grid' }) {
+export function Facts({ items, layout = 'grid', className = '' }: { items: [ReactNode, ReactNode][]; layout?: 'stack' | 'grid'; className?: string }) {
   const empty = (v: ReactNode) => v === null || v === undefined || v === '';
   if (layout === 'stack') {
     return (
-      <dl className="flex flex-col gap-2.5">
+      <dl className={`flex flex-col gap-2.5 ${className}`}>
         {items.map(([k, v], i) => (
           <div key={i} className="flex flex-col gap-0.5 text-[13px]">
             <dt className="text-muted">{k}</dt>
@@ -286,7 +307,7 @@ export function Facts({ items, layout = 'grid' }: { items: [ReactNode, ReactNode
     );
   }
   return (
-    <dl className="flex flex-col">
+    <dl className={`flex flex-col gap-2 ${className}`}>
       {items.map(([k, v], i) => (
         <div key={i} className="grid grid-cols-[minmax(100px,150px)_minmax(0,1fr)] gap-3 py-1 text-sm">
           <dt className="text-muted">{k}</dt>
