@@ -54,7 +54,11 @@ npm run check:routes         # needs the backend and `npm run dev` running; rese
 
 ## Demo
 
-Open http://localhost:3000/demo. It lists every persona (family members, the partner, If staff) and lets you view the app as any of them, simulate a cold night, finish a partner visit, and reset all demo data. The invitation at `/invite/demo-virtanen` starts the main story: Aino accepts, sets up the home, invites Mikko, and the family shares the care plan.
+Participants can open http://localhost:3000 and click **Try the demo**, or go directly to `/demo/start`. This opens the populated Lindqvist home as its coordinator, with no signup, login, invitation or personal details required. Opening the demo does not create accounts or reset data. Supabase stores the shared demo data and photos; all participants see the same changes.
+
+The optional **Switch person** page at `/demo` lists every persona (family members, the partner, If staff) and lets you view the app as any of them, simulate a cold night, finish a partner visit, and reset all demo data. The invitation at `/invite/demo-virtanen` starts the guided main story: Aino accepts, sets up the home, invites Mikko, and the family shares the care plan.
+
+The demo-person cookie selects a fictional role. Participants never need Supabase accounts or the backend API key; that key stays on the frontend server.
 
 Everything simulated (weather events, SMS and email, the partner's side) is labelled as such in the UI.
 
