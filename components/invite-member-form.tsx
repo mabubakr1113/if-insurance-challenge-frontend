@@ -21,6 +21,7 @@ export function InviteMemberForm({ homeId, estateName, inDialog = true }: { home
         legendSize="sm"
         name="relation"
         size="sm"
+        defaultValue="child"
         choices={options(RELATION).map(([value, label]) => ({ value, label }))}
       />
       <div className="flex flex-col gap-2">
@@ -33,7 +34,7 @@ export function InviteMemberForm({ homeId, estateName, inDialog = true }: { home
           ))}
         </p>
       </div>
-      <Checkbox name="canAuthorise" description="May authorise a partner’s access to the home. Not for viewers.">
+      <Checkbox name="canAuthorise">
         Can approve local visits
       </Checkbox>
       {inDialog ? (

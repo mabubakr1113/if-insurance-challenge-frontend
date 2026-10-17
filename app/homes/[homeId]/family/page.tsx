@@ -54,16 +54,16 @@ export default async function FamilyPage({ params, searchParams }: PageProps<'/h
           <Card size="section" title="Your details" className="gap-3.5">
             <ActionForm action={updateMemberDetails.bind(null, self.id)} className="flex flex-col gap-3.5">
               <div className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))]">
-                <Field label="Name" name="name" htmlFor="self-name">
+                <Field small label="Name" name="name" htmlFor="self-name">
                   <input id="self-name" name="name" className={input} defaultValue={self.name} autoComplete="name" />
                 </Field>
-                <Field label="City" name="city" htmlFor="self-city">
+                <Field small label="City" name="city" htmlFor="self-city">
                   <input id="self-city" name="city" className={input} defaultValue={self.city ?? ''} autoComplete="address-level2" />
                 </Field>
-                <Field label="Phone" name="phone" htmlFor="self-phone">
+                <Field small label="Phone" name="phone" htmlFor="self-phone">
                   <input id="self-phone" name="phone" type="tel" className={input} defaultValue={self.phone ?? ''} autoComplete="tel" />
                 </Field>
-                <Field label="Email" name="email" htmlFor="self-email">
+                <Field small label="Email" name="email" htmlFor="self-email">
                   <input id="self-email" name="email" type="email" className={input} defaultValue={self.email ?? ''} autoComplete="email" />
                 </Field>
               </div>
@@ -78,7 +78,7 @@ export default async function FamilyPage({ params, searchParams }: PageProps<'/h
       ) : null}
 
       {coordinator && sp.invite === '1' ? (
-        <Dialog title="Invite someone" closeHref={familyHref} width="md">
+        <Dialog title="Invite someone" closeHref={familyHref} width={520}>
           <InviteMemberForm homeId={homeId} estateName={home.estateName} />
         </Dialog>
       ) : null}

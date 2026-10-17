@@ -147,7 +147,7 @@ function StepHome({ home, save, token, occupancyError }: { home: Home; save: For
         <ChipGroup
           legend="Is anyone living in the home now?"
           name="occupancy"
-          size="lg"
+          size="xl"
           defaultValue={home.occupancyConfirmed ? 'empty' : null}
           choices={[
             { value: 'empty', label: 'No, it’s empty' },
@@ -264,14 +264,9 @@ function StepFamily({ home, members }: { home: Home; members: Member[] }) {
         <span className="text-[13px] text-muted">Invitations are simulated: they appear in the person’s Messages. You can also skip this and invite people later.</span>
       </div>
       <Buttons step={4} homeId={home.id}>
-        <span className="flex gap-2">
-          <Link href={`/setup/${home.id}?step=5`} className={button('quiet', 'xl')}>
-            Skip for now
-          </Link>
-          <Link href={`/setup/${home.id}?step=5`} className={button('primary', 'xl')}>
-            Continue
-          </Link>
-        </span>
+        <Link href={`/setup/${home.id}?step=5`} className={button('primary', 'xl')}>
+          Continue
+        </Link>
       </Buttons>
     </StepCard>
   );
