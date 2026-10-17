@@ -115,7 +115,7 @@ async function main() {
   const h = `/homes/${ids.main}`;
   const e = `/homes/${ids.example}`;
   const checks: Check[] = [
-    { route: '/', actor: null, as: 'none', expect: ['someone has to look after it'] },
+    { route: '/', actor: null, as: 'none', expect: ['change things', 'Home Watch'] },
     { route: '/demo', actor: null, as: 'none', expect: ['Simulated events'] },
     { route: '/demo/start', actor: null, as: 'new participant', expect: { redirect: e, cookieActor: ids.sanna } },
     { route: '/demo/start', actor: 'member:00000000-0000-0000-0000-000000000000', as: 'stale demo person', expect: { redirect: e, cookieActor: ids.sanna } },
