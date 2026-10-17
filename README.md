@@ -75,3 +75,5 @@ vercel deploy --prod
 ```
 
 Then open `/` and `/demo` on the production URL.
+
+`vercel.json` places the frontend's server rendering in Dublin (`dub1`), alongside the backend and near its Supabase database. Keep both apps in the same region to avoid long server-to-server round trips on every page.
