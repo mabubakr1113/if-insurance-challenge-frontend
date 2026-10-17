@@ -633,6 +633,8 @@ export interface EssentialStatus { key: EssentialKey; label: string; why: string
 
 export interface ForecastDay { date: string; minC: number; maxC: number; gustMs: number; snowCm: number }
 
+export interface DatedForecast { source: ForecastSource; fetchedAt: string | null; day: ForecastDay }
+
 export interface WeatherAlert {
   id: string;
   rule: WeatherRule;
@@ -966,6 +968,7 @@ Actions on a home whose status is `occupied`, `sold`, `transferred`, `closed` or
 | Method | Path | Actor | Body | Returns |
 | --- | --- | --- | --- | --- |
 | GET | `/api/homes/:homeId/weather` | M | – | `HomeWeather` (refetches when older than 60 min and not simulated) |
+| GET | `/api/homes/:homeId/weather/day?date=YYYY-MM-DD` | M | – | `DatedForecast` (today through today + 15 days, Helsinki dates) |
 | POST | `/api/homes/:homeId/weather/refresh` | M | – | `HomeWeather` (always refetches unless simulated; runs the rules) |
 
 **Local visits (bookings)**
@@ -1158,6 +1161,7 @@ The partner path (8.8) reuses steps 2–7 with `visitor_type='partner'`.
 
 - **GET weather:** if the source is `simulated`, return the stored forecast as it is. If it's `open-meteo` and younger than 60 minutes, return it. Otherwise refetch and run the rules.
 - **Refresh:** refetch (unless simulated) and run the rules.
+- **Date lookup:** validate the date, then return its stored simulated day if present, otherwise fetch Open-Meteo with `start_date` and `end_date` both set to the selected day. No forecast storage, alert rules, tasks or notifications. Dates outside today through today + 15 days return 400; unavailable or incomplete provider data returns 503.
 - **Fetch failure:** keep whatever is stored. If nothing is stored, return `days: []`, `fetchedAt: null`. Never fail the request.
 - Weather is fetched only for `active` homes.
 
