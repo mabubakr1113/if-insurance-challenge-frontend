@@ -1,24 +1,97 @@
 @import "tailwindcss";
 
-/* Calm and warm: off-white paper, deep teal for actions, amber words for urgency. No alarm red. */
+/* Warm paper, plum ink, coral only as decoration. Urgency is words first and amber second. No alarm red. */
 @theme inline {
-  --color-paper: #fbf8f3;
-  --color-card: #ffffff;
-  --color-ink: #1f2a2e;
-  --color-muted: #59656a;
-  --color-line: #e5ded2;
-  --color-soft: #f3eee6;
-  --color-accent: #2d5b60;
-  --color-accent-strong: #21464a;
-  --color-accent-soft: #e4eeee;
+  --color-paper: #faf6f3;
+  --color-sidebar: #f5ede8;
+  --color-card: #fffdfb;
+  --color-white: #ffffff;
+  --color-ink: #3b1f3a;
+  --color-ink-strong: #2a1529;
+  --color-ink-soft: #4d3550;
+  --color-muted: #6e5468;
+  --color-faint: #8b7487;
+  --color-nav: #5e4659;
+  --color-line: #ecdfd6;
+  --color-line-soft: #f1e6df;
+  --color-line-input: #e3d3c9;
+  --color-line-hover: #cdb6aa;
+  --color-sidebar-line: #eadcd3;
+  --color-hover: #fbf6f3;
+  --color-hover-btn: #f5ece7;
+  --color-soft: #f3e9e3;
+  --color-segment: #f1e8e2;
+  --color-tri: #f5eee9;
+  --color-tile: #f7f0ec;
+  --color-selected: #fbf5f2;
+  --color-skeleton: #efe3dc;
+  --color-skeleton-mid: #f2e8e2;
+  --color-skeleton-soft: #f4ebe5;
+  --color-step: #efe3dc;
+  --color-step-text: #9b8794;
+  --color-accent: #e2674a;
+  --color-accent-text: #c4472c;
+  --color-accent-soft: #f3e6ef;
+  --color-accent-on-dark: #f2a08a;
   --color-attention: #8a4f0c;
+  --color-attention-strong: #5a3206;
+  --color-attention-ink: #6b3c08;
   --color-attention-soft: #fbefdc;
+  --color-attention-dot: #d98a1c;
+  --color-sim: #fffaf2;
+  --color-sim-line: #d9a35c;
+  --color-high: #8f2f1b;
+  --color-high-soft: #fbe1d8;
   --color-ok: #2c6542;
+  --color-ok-strong: #1f4a30;
   --color-ok-soft: #e6f2ea;
   --color-concern: #8a3b2e;
+  --color-concern-strong: #6e2a20;
   --color-concern-soft: #f7e9e4;
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-concern-line: #e8c9bf;
+  --color-concern-field: #fffaf8;
+  --color-error-border: #c4472c;
+  --color-neutral: #f1e9e4;
+  --color-chip: #f3ebe6;
+  --color-dot-normal: #d8c6bb;
+  --color-unread-line: #d9b8c9;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-newsreader), Georgia, serif;
+}
+
+@theme {
+  /* The sidebar replaces the top bar from 720px. */
+  --breakpoint-wide: 45rem;
+  --animate-pulse-soft: hw-pulse 1.4s ease-in-out infinite;
+  --animate-spin-fast: hw-spin 0.7s linear infinite;
+  --animate-toast: hw-up 0.25s ease-out;
+}
+
+@keyframes hw-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes hw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hw-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }
 
 :root {
@@ -28,12 +101,121 @@
 body {
   background: var(--color-paper);
   color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+p {
+  text-wrap: pretty;
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-accent);
+  outline: 2px solid var(--color-ink);
   outline-offset: 2px;
-  border-radius: 4px;
+}
+
+/* A field with a server error: red border on its control. Errors appear on submit, never while typing. */
+[data-invalid="true"] :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  border-color: var(--color-error-border);
+}
+
+/* Checkbox: 20px plum square, white check when ticked. */
+.hw-check {
+  appearance: none;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 2px solid var(--color-ink);
+  border-radius: 6px;
+  background: #ffffff center / 12px no-repeat;
+  cursor: pointer;
+}
+.hw-check:checked {
+  background-color: var(--color-ink);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.5'%3E%3Cpath d='M5 12l5 5 9-10'/%3E%3C/svg%3E");
+}
+.hw-check:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.hw-check.hw-check-sm {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background-size: 11px;
+}
+
+/* Radio: 18px ring, 8px plum dot when chosen. */
+.hw-radio {
+  appearance: none;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  border: 2px solid var(--color-dot-normal);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+.hw-radio:checked {
+  border-color: var(--color-ink);
+  background: radial-gradient(circle, var(--color-ink) 0 4px, transparent 4.5px);
+}
+
+/* Visually hidden but focusable: chips and tiles wrap a real radio or checkbox. */
+.hw-peer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+label:has(> .hw-peer:focus-visible) {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+/* Setup step 1: choosing "someone lives there" swaps the rest of the step for an explanation. No JS needed. */
+.if-occupied {
+  display: none;
+}
+.occupancy-step:has(input[name="occupancy"][value="occupied"]:checked) .if-occupied {
+  display: flex;
+}
+.occupancy-step:has(input[name="occupancy"][value="occupied"]:checked) .if-empty {
+  display: none;
+}
+
+/* Settings: "Close the plan" appears once the home's new status is chosen. */
+.transition-step .if-transition,
+.transition-step .if-cover {
+  display: none;
+}
+.transition-step:has(input[name="status"]:not([value=""]):checked) .if-transition {
+  display: flex;
+}
+.transition-step:has(input[name="status"][value="sold"]:checked, input[name="status"][value="transferred"]:checked) .if-cover {
+  display: flex;
+}
+
+/* Invite: the meaning of the chosen role. */
+.role-meaning > [data-role] {
+  display: none;
+}
+form:has(input[name="role"][value="coordinator"]:checked) .role-meaning > [data-role="coordinator"],
+form:has(input[name="role"][value="helper"]:checked) .role-meaning > [data-role="helper"],
+form:has(input[name="role"][value="viewer"]:checked) .role-meaning > [data-role="viewer"] {
+  display: block;
+}
+
+/* Booking: a package's "includes" list shows only on the chosen tile. */
+.pkg-includes {
+  display: none;
+}
+label:has(> input:checked) .pkg-includes {
+  display: flex;
 }
 
 @media print {
@@ -43,15 +225,4 @@ body {
   .no-print {
     display: none !important;
   }
-}
-
-/* Setup step 1: choosing "someone lives there" swaps the rest of the step for an explanation. No JS needed. */
-.if-occupied {
-  display: none;
-}
-.occupancy-step:has(input[name="occupancy"][value="occupied"]:checked) .if-occupied {
-  display: block;
-}
-.occupancy-step:has(input[name="occupancy"][value="occupied"]:checked) .if-empty {
-  display: none;
 }

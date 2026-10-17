@@ -123,6 +123,11 @@ function offsetAt(ms: number): number {
   return Date.UTC(f.year, f.month - 1, f.day, f.hour, f.minute, f.second) - Math.floor(ms / 1000) * 1000;
 }
 
+/** The hour (0–23) in Helsinki now, for greetings. */
+export function helsinkiHour(now: Date = new Date()): number {
+  return helsinkiFields(now).hour;
+}
+
 /** `YYYY-MM-DD` in Helsinki. */
 export function helsinkiYmd(value: string | Date = new Date()): string {
   const f = helsinkiFields(toDate(value));

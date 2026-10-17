@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { partnerAccept, partnerStart } from '@/app/actions/partner';
 import { AutoRefresh } from '@/components/auto-refresh';
-import { link } from '@/components/styles';
-import { Badge, Card, Empty, PageHeader, SimLabel } from '@/components/ui';
+import { BookingBadge } from '@/components/booking-bits';
+import { ActionForm, SubmitButton } from '@/components/forms';
+import { button } from '@/components/styles';
+import { PageHeader, SimLabel } from '@/components/ui';
 import type { PartnerJob } from '@/lib/contract';
 import { fmtDate, fmtMoney, fmtSlot } from '@/lib/format';
 import { read, requirePartner } from '@/lib/guards';
-import { BOOKING_STATUS } from '@/lib/labels';
 
 export const metadata: Metadata = { title: 'Visit requests' };
 
@@ -22,53 +24,75 @@ export default async function PartnerPage() {
     <div className="flex flex-col gap-6">
       <AutoRefresh seconds={10} />
       <PageHeader
-        title={me.partner.name}
+        title="Visit requests"
         intro={
           <span className="flex flex-wrap items-center gap-2">
-            {me.partner.area} <SimLabel>Fictional partner</SimLabel>
+            {me.partner.name} · {me.partner.area} <SimLabel>Fictional partner</SimLabel>
           </span>
         }
       />
-      <JobGroup title="New requests" jobs={open} />
-      <JobGroup title="Scheduled" jobs={scheduled} />
-      <JobGroup title="Done" jobs={done} finished />
+      <JobGroup title="New requests" jobs={open} empty="No new requests right now." />
+      <JobGroup title="Scheduled" jobs={scheduled} empty="Nothing scheduled." />
+      <JobGroup title="Done" jobs={done} empty="No finished visits yet." />
     </div>
   );
 }
 
-function JobGroup({ title, jobs, finished = false }: { title: string; jobs: PartnerJob[]; finished?: boolean }) {
+function JobGroup({ title, jobs, empty }: { title: string; jobs: PartnerJob[]; empty: string }) {
   return (
-    <Card title={title}>
+    <section aria-label={title} className="flex flex-col gap-2.5">
+      <h2 className="text-[15px] font-semibold text-muted">
+        {title} <span className="font-medium">{jobs.length}</span>
+      </h2>
       {jobs.length === 0 ? (
-        <Empty>Nothing here right now.</Empty>
+        <div className="rounded-[14px] border border-dashed border-line-input p-[22px] text-sm text-muted">{empty}</div>
       ) : (
-        <ul className="flex flex-col divide-y divide-line">
+        <ul className="flex flex-col gap-2.5">
           {jobs.map(({ booking: b, home }) => {
             const finishedAt = b.completedAt ?? b.cancelledAt;
+            const who = `${b.requestedBy ? `Requested by ${b.requestedBy.name}` : 'Requested'}${b.approvedBy && b.approvedBy.id !== b.requestedBy?.id ? ` · approved by ${b.approvedBy.name}` : ''}`;
             return (
-              <li key={b.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                <div>
-                  <Link href={`/partner/jobs/${b.id}`} className={`${link} font-semibold`}>
+              <li key={b.id} className="flex flex-wrap items-center justify-between gap-4 rounded-[14px] border border-line bg-card px-5 py-[18px]">
+                <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
+                  <Link href={`/partner/jobs/${b.id}`} className="text-base font-semibold hover:text-accent-text">
                     {home.addressLine}, {home.city}
                   </Link>
-                  <p className="text-sm">
+                  <span className="text-sm">
                     {b.package.name} · {fmtSlot(b.slotStart, b.slotEnd)}
-                  </p>
-                  <p className="text-sm text-muted">
-                    {b.requestedBy ? `Requested by ${b.requestedBy.name}` : 'Requested'}
-                    {b.approvedBy ? ` · approved by ${b.approvedBy.name}` : ''}
-                  </p>
+                  </span>
+                  <span className="text-[13px] text-muted">
+                    {who}
+                    {finishedAt ? ` · ${fmtDate(finishedAt)}` : ''}
+                  </span>
                 </div>
-                <div className="flex shrink-0 flex-col items-start gap-1 sm:items-end">
-                  <span className="font-semibold">{fmtMoney(b.package.partnerPriceCents)}</span>
-                  <Badge tone={b.status === 'completed' ? 'ok' : b.status === 'requested' ? 'attention' : 'accent'}>{BOOKING_STATUS[b.status]}</Badge>
-                  {finished && finishedAt ? <span className="text-xs text-muted">{fmtDate(finishedAt)}</span> : null}
+                <div className="flex flex-col items-end gap-2">
+                  <span className="flex items-center gap-2.5">
+                    <span className="font-display text-2xl">{fmtMoney(b.package.partnerPriceCents)}</span>
+                    <BookingBadge status={b.status} size="md" />
+                  </span>
+                  {b.status === 'requested' ? (
+                    <ActionForm action={partnerAccept.bind(null, b.id)}>
+                      <SubmitButton size="sm" pendingText="Accepting…">
+                        Accept
+                      </SubmitButton>
+                    </ActionForm>
+                  ) : b.status === 'confirmed' ? (
+                    <ActionForm action={partnerStart.bind(null, b.id)}>
+                      <SubmitButton size="sm" pendingText="Starting…">
+                        Start the visit
+                      </SubmitButton>
+                    </ActionForm>
+                  ) : b.status === 'in_progress' ? (
+                    <Link href={`/partner/jobs/${b.id}#report`} className={button('primary', 'sm')}>
+                      Send the report
+                    </Link>
+                  ) : null}
                 </div>
               </li>
             );
           })}
         </ul>
       )}
-    </Card>
+    </section>
   );
 }

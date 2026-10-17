@@ -18,5 +18,5 @@ export async function openNotification(id: string, link: string): Promise<Action
 }
 
 export async function markAllRead(): Promise<ActionState> {
-  return act(() => api<{ ok: true }>('/api/notifications/read', { body: {} }), { message: 'All messages are marked as read.' });
+  return act(() => api<{ ok: true }>('/api/notifications/read', { body: {} }), { message: 'All messages marked as read.' });
 }

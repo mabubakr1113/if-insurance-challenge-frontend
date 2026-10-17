@@ -18,11 +18,13 @@ export function readReport(fd: FormData): {
     const raw = text(fd, `check.${key}.result`);
     const result = (RESULTS as string[]).includes(raw) ? (raw as CheckResult) : 'not_checked';
     const note = optional(fd, `check.${key}.note`);
-    if (result === 'concern' && !note) errors[`check.${key}.note`] = 'Describe the concern, so someone can follow it up';
+    if (result === 'concern' && !note) errors[`check.${key}.note`] = 'Say what you saw, so someone can follow it up.';
     checks.push({ key, result, note });
   }
+  if (!checks.some((c) => c.result !== 'not_checked')) errors.checks = 'Mark at least one check before saving.';
   const temp = number(fd, 'indoorTempC');
-  if (temp !== null && (Number.isNaN(temp) || temp < -40 || temp > 50)) errors.indoorTempC = 'Enter a temperature between −40 and 50 °C';
+  if (temp !== null && Number.isNaN(temp)) errors.indoorTempC = 'Enter a number, like 17.5';
+  else if (temp !== null && (temp < -40 || temp > 50)) errors.indoorTempC = 'Enter a temperature between −40 and 50 °C';
   const photoIds = all(fd, 'photoIds');
   return {
     checks,

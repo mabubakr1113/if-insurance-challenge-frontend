@@ -1,16 +1,17 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createBooking } from '@/app/actions/bookings';
+import { PastVisitsCard } from '@/components/booking-bits';
 import { BookingForm } from '@/components/booking-form';
+import { Icon } from '@/components/icons';
 import { link } from '@/components/styles';
-import { attentionReason } from '@/components/task-item';
-import { Card, Notice, PageHeader, SimLabel } from '@/components/ui';
+import { Notice, PageHeader } from '@/components/ui';
 import type { Booking, BookingOptions, BookingStatus, PackageKey } from '@/lib/contract';
 import { fmtSlot } from '@/lib/format';
 import { canHelp, getHome, getMembers, isClosed, read, requireMember } from '@/lib/guards';
 import { BOOKING_STATUS, firstName } from '@/lib/labels';
 
-export const metadata: Metadata = { title: 'Request a local visit' };
+export const metadata: Metadata = { title: 'Book a local visit' };
 
 const FINISHED: BookingStatus[] = ['completed', 'cancelled', 'declined'];
 const INTRO = 'A vetted local partner visits, follows the checklist and sends a report with photos.';
@@ -26,40 +27,30 @@ export default async function HelpPage({ params, searchParams }: PageProps<'/hom
   const coordinatorName = firstName(members.find((m) => m.role === 'coordinator')?.name ?? 'the coordinator');
 
   const activeNotice = active ? (
-    <Notice tone="accent" role="status">
-      There’s already a visit {BOOKING_STATUS[active.status].toLowerCase()} for {fmtSlot(active.slotStart, active.slotEnd)}.{' '}
-      <Link href={`${base}/help/${active.id}`} className={link}>
-        See the visit
-      </Link>
+    <Notice
+      tone="info"
+      role="status"
+      action={
+        <Link href={`${base}/help/${active.id}`} className={link}>
+          See the visit
+        </Link>
+      }
+    >
+      There’s already a visit {BOOKING_STATUS[active.status].toLowerCase()} for {fmtSlot(active.slotStart, active.slotEnd)}.
     </Notice>
-  ) : null;
-
-  const pastList = bookings.length ? (
-    <Card title="Local visits">
-      <ul className="flex flex-col divide-y divide-line">
-        {bookings.map((b) => (
-          <li key={b.id} className="flex flex-wrap items-baseline justify-between gap-2 py-2">
-            <Link href={`${base}/help/${b.id}`} className={link}>
-              {b.package.name}, {fmtSlot(b.slotStart, b.slotEnd)}
-            </Link>
-            <span className="text-sm text-muted">{BOOKING_STATUS[b.status]}</span>
-          </li>
-        ))}
-      </ul>
-    </Card>
   ) : null;
 
   if (isClosed(home) || !canHelp(me.member)) {
     return (
-      <div className="flex flex-col gap-6">
-        <PageHeader title="Local visit" intro={INTRO} />
-        {isClosed(home) ? (
-          <Notice>This plan is closed, so no new visits can be requested.</Notice>
-        ) : (
-          <Notice>Ask {coordinatorName} to request a visit. Viewers can read and comment.</Notice>
-        )}
+      <div className="flex flex-col gap-5">
+        <PageHeader title="Book a local visit" intro={INTRO} />
+        <Notice tone="neutral">
+          {isClosed(home) ? 'This plan is closed, so no new visits can be booked.' : `Viewers can read and comment. Ask ${coordinatorName} to book a visit.`}
+        </Notice>
         {activeNotice}
-        {pastList}
+        <div className="max-w-[420px]">
+          <PastVisitsCard bookings={bookings} homeId={homeId} />
+        </div>
       </div>
     );
   }
@@ -69,20 +60,32 @@ export default async function HelpPage({ params, searchParams }: PageProps<'/hom
   const defaultPackage: PackageKey = task?.priority === 'urgent' && options.slots.urgent.length ? 'urgent' : 'check';
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title="Request a local visit" intro={INTRO} />
-      {task ? (
-        <Card>
-          <p className="font-semibold">For: {task.title}</p>
-          <p className="text-attention">{attentionReason(task)}</p>
-        </Card>
-      ) : null}
+    <div className="flex flex-col gap-5">
+      <PageHeader title="Book a local visit" intro={INTRO} />
       {activeNotice}
-      <p className="text-sm">
-        <SimLabel>Fictional partner</SimLabel> {options.partner.name}, {options.partner.area}.
-      </p>
-      <BookingForm options={options} defaultPackage={defaultPackage} action={createBooking.bind(null, homeId, task?.id ?? null, options.canApprove)} />
-      {pastList}
+      <BookingForm
+        options={options}
+        defaultPackage={defaultPackage}
+        action={createBooking.bind(null, homeId, task?.id ?? null, options.canApprove)}
+        taskChip={
+          task ? (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-card px-4 py-3">
+              <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-xs text-muted">For the task</span>
+                <span className="text-[15px] font-semibold">{task.title}</span>
+              </span>
+              <Link
+                href={`${base}/help`}
+                aria-label="Book without linking this task"
+                className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-hover-btn hover:text-ink"
+              >
+                <Icon name="close" size={16} strokeWidth={2} />
+              </Link>
+            </div>
+          ) : null
+        }
+        railExtra={<PastVisitsCard bookings={bookings} homeId={homeId} />}
+      />
     </div>
   );
 }

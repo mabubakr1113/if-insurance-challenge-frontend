@@ -1,42 +1,46 @@
 import type { Supervision } from '@/lib/contract';
-import { fmtDate, fmtDateTime } from '@/lib/format';
 import { supervisionText } from '@/lib/labels';
-import { link } from './styles';
-import { Badge } from './ui';
+import { Badge, Card } from './ui';
 
-const STATE: Record<Supervision['state'], { label: string; tone: 'ok' | 'attention' | 'neutral' }> = {
+export const SUPERVISION_STATE: Record<Supervision['state'], { label: string; tone: 'ok' | 'attention' | 'neutral' }> = {
   no_visit_yet: { label: 'No visit yet', tone: 'attention' },
   ok: { label: 'On track', tone: 'ok' },
   due_soon: { label: 'Visit due soon', tone: 'neutral' },
   overdue: { label: 'Visit overdue', tone: 'attention' },
 };
 
-export function SupervisionSummary({ supervision: s }: { supervision: Supervision }) {
+/** Overview rail: badge + one sentence, no progress bar. */
+export function SupervisionCard({ supervision: s }: { supervision: Supervision }) {
+  const state = SUPERVISION_STATE[s.state];
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={STATE[s.state].tone}>{STATE[s.state].label}</Badge>
+    <Card title="Supervision" action={<Badge tone={state.tone}>{state.label}</Badge>}>
+      <p className="text-sm leading-normal text-ink-soft">{supervisionText(s)}</p>
+    </Card>
+  );
+}
+
+/** Visits page: the supervision strip with the rule behind it. */
+export function SupervisionStrip({ supervision: s }: { supervision: Supervision }) {
+  const state = SUPERVISION_STATE[s.state];
+  return (
+    <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-card px-[22px] py-5">
+      <div className="flex flex-[1_1_300px] flex-col gap-1">
+        <span className="text-[13px] text-muted">Supervision</span>
+        <span className="text-base font-medium">{supervisionText(s)}</span>
+        <span className="text-xs text-muted">
+          {s.ruleLabel}{' '}
+          {s.source.url ? (
+            <a href={s.source.url} target="_blank" rel="noreferrer" className="underline decoration-accent underline-offset-2 hover:text-ink">
+              {s.source.label}
+            </a>
+          ) : (
+            s.source.label
+          )}
+        </span>
       </div>
-      <p className="text-base">{supervisionText(s)}</p>
-      <ul className="text-sm text-muted">
-        {s.lastVisitAt ? (
-          <li>
-            Last visit: {fmtDateTime(s.lastVisitAt)}
-            {s.lastVisitorName ? ` by ${s.lastVisitorName}` : ''}
-          </li>
-        ) : null}
-        <li>Next visit due by {fmtDate(s.nextDueAt)}</li>
-      </ul>
-      <p className="text-sm text-muted">
-        {s.ruleLabel}{' '}
-        {s.source.url ? (
-          <a href={s.source.url} className={link} target="_blank" rel="noreferrer">
-            {s.source.label}
-          </a>
-        ) : (
-          s.source.label
-        )}
-      </p>
-    </div>
+      <Badge tone={state.tone} size="md">
+        {state.label}
+      </Badge>
+    </section>
   );
 }

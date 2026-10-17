@@ -16,8 +16,8 @@ export default async function JoinPage({ params }: PageProps<'/join/[token]'>) {
   } catch (err) {
     if (err instanceof ApiError && (err.status === 404 || err.code === 'removed')) {
       return (
-        <div className="mx-auto max-w-xl py-12 text-center">
-          <h1 className="text-2xl font-semibold">{err.code === 'removed' ? 'This invitation is no longer active.' : 'This invitation link isn’t valid.'}</h1>
+        <div className="mx-auto my-12 flex max-w-[520px] flex-col items-center gap-3 text-center">
+          <h1 className="font-display text-[32px] leading-tight font-normal">{err.code === 'removed' ? 'This invitation is no longer active' : 'This invitation link isn’t valid'}</h1>
         </div>
       );
     }
@@ -28,19 +28,18 @@ export default async function JoinPage({ params }: PageProps<'/join/[token]'>) {
   const whose = home.estateName ? `${home.estateName}’s home` : 'the home';
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="mx-auto flex max-w-[640px] flex-col gap-6">
       <PageHeader
         title="Join the family"
         intro={`${view.invitedBy ?? 'Your family'} invited you to help look after ${whose} at ${home.addressLine}, ${home.city}.`}
       />
-      <Card>
-        <p>
-          <span className="font-medium">Your role: {ROLE[member.role]}</span>. You {ROLE_MEANING[member.role]}.
+      <Card size="section">
+        <p className="text-[15px]">
+          <span className="font-semibold">Your role: {ROLE[member.role]}</span>. You {ROLE_MEANING[member.role]}.
         </p>
-        {member.canAuthorise ? <p className="mt-2">You can approve local visits.</p> : null}
-        <p className="mt-2 text-muted">Helpers take tasks, record visits and add house notes.</p>
-        <p className="mt-2 text-sm text-muted">Only people the family invites can see this home. The plan can be closed at any time.</p>
-        <ActionForm action={joinFamily.bind(null, token)} className="mt-5">
+        {member.canAuthorise ? <p className="text-[15px]">You can approve local visits.</p> : null}
+        <p className="text-sm text-muted">Only people the family invites can see this home. The plan can be closed at any time.</p>
+        <ActionForm action={joinFamily.bind(null, token)} className="pt-1">
           <SubmitButton pendingText="Joining…">{member.status === 'joined' ? `Continue as ${member.name}` : 'Join'}</SubmitButton>
         </ActionForm>
       </Card>

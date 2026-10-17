@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { btn, btnSecondary } from './styles';
+import { button, type ButtonSize, type ButtonVariant } from './styles';
 
-export function PrintButton({ label = 'Print', variant = 'secondary' }: { label?: string; variant?: 'primary' | 'secondary' }) {
+export function PrintButton({ label = 'Print', variant = 'secondary', size = 'md' }: { label?: string; variant?: ButtonVariant; size?: ButtonSize }) {
   return (
-    <button type="button" onClick={() => window.print()} className={`no-print ${variant === 'primary' ? btn : btnSecondary}`}>
+    <button type="button" onClick={() => window.print()} className={`no-print ${button(variant, size)}`}>
       {label}
     </button>
   );
