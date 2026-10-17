@@ -54,7 +54,8 @@ export default async function TaskPage({ params }: PageProps<'/homes/[homeId]/ta
   }
 
   const activity = [...detail.activity].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const assignable = isCoordinator(me.member) ? members.filter((m) => m.status === 'joined' && m.role !== 'viewer') : [me.member];
+  // Invited members can be given tasks before they join (the demo assigns Mikko right after inviting him).
+  const assignable = isCoordinator(me.member) ? members.filter((m) => m.role !== 'viewer') : [me.member];
 
   const taskActions = (
     <div className="flex flex-wrap items-start gap-2">
@@ -204,7 +205,7 @@ export default async function TaskPage({ params }: PageProps<'/homes/[homeId]/ta
                     <option value="">Nobody</option>
                     {assignable.map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.id === me.member.id ? `Me (${m.name})` : m.name}
+                        {m.id === me.member.id ? `Me (${m.name})` : `${m.name}${m.status === 'invited' ? ' (invited)' : ''}`}
                       </option>
                     ))}
                   </select>

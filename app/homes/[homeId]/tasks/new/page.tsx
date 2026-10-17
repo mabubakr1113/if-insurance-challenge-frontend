@@ -17,7 +17,7 @@ export default async function NewTaskPage({ params }: PageProps<'/homes/[homeId]
   const [home, members] = await Promise.all([getHome(homeId), getMembers(homeId)]);
   if (!canHelp(me.member) || isClosed(home)) redirect(`/homes/${homeId}/plan`);
   const coordinator = isCoordinator(me.member);
-  const owners = coordinator ? members.filter((m) => m.status === 'joined') : members.filter((m) => m.id === me.member.id);
+  const owners = coordinator ? members.filter((m) => m.role !== 'viewer') : members.filter((m) => m.id === me.member.id);
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -54,7 +54,7 @@ export default async function NewTaskPage({ params }: PageProps<'/homes/[homeId]
               <option value="">Nobody yet</option>
               {owners.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.id === me.member.id ? `Me (${m.name})` : m.name}
+                  {m.id === me.member.id ? `Me (${m.name})` : `${m.name}${m.status === 'invited' ? ' (invited)' : ''}`}
                 </option>
               ))}
             </select>
