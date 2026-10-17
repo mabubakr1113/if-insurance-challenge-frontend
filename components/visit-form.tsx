@@ -50,8 +50,9 @@ export function VisitForm({
   variant: 'family' | 'partner';
   submitLabel: string;
 }) {
-  const [results, setResults] = useState<Record<string, CheckResult>>(() => Object.fromEntries(checklist.map((i) => [i.key, 'not_checked'])));
-  const answered = Object.values(results).filter((r) => r !== 'not_checked').length;
+  // Nothing is picked until the visitor answers; an unanswered check is saved as "Not checked".
+  const [results, setResults] = useState<Record<string, CheckResult>>({});
+  const answered = Object.keys(results).length;
   const concerns = Object.values(results).filter((r) => r === 'concern').length;
   const closing = useMemo(
     () =>
@@ -64,18 +65,18 @@ export function VisitForm({
   );
 
   const set = (key: string, value: CheckResult) => setResults((r) => ({ ...r, [key]: value }));
-  const restOk = () => setResults((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v === 'not_checked' ? 'ok' : v])));
+  const restOk = () => setResults((r) => Object.fromEntries(checklist.map((i) => [i.key, r[i.key] ?? 'ok'])));
 
   return (
     <ActionForm action={action} className={`${twoCol} gap-7`} showMessage={false}>
       <div className={`${mainCol} gap-5`}>
         <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))]">
           {variant === 'family' ? (
-            <Field label="When" name="visitedAt" hint="Helsinki time.">
+            <Field label="When" name="visitedAt" small>
               <input id="visitedAt" name="visitedAt" type="datetime-local" className={input} defaultValue={defaultVisitedAt} max={maxVisitedAt} />
             </Field>
           ) : null}
-          <Field label="Indoor temperature, °C" name="indoorTempC" hint="A thermometer or the thermostat display.">
+          <Field label="Indoor temperature, °C" name="indoorTempC" small>
             <input id="indoorTempC" name="indoorTempC" inputMode="decimal" className={input} placeholder="Optional, e.g. 17.5" autoComplete="off" />
           </Field>
         </div>
@@ -100,7 +101,7 @@ export function VisitForm({
           <h2 id="photos-notes" className={eyebrow}>
             Photos and notes
           </h2>
-          <PhotoPicker homeId={homeId} canDelete={variant === 'family'} showLabel={false} />
+          <PhotoPicker homeId={homeId} canDelete={variant === 'family'} showLabel={false} tiles={2} />
           <label htmlFor="notes" className="sr-only">
             General notes
           </label>
@@ -154,7 +155,7 @@ export function VisitForm({
 }
 
 /** One checklist row: label, the OK / Concern / Not checked control, and "What did you see?" for a concern. */
-function CheckRow({ item, result, onPick }: { item: CheckItem; result: CheckResult; onPick: (v: CheckResult) => void }) {
+function CheckRow({ item, result, onPick }: { item: CheckItem; result?: CheckResult; onPick: (v: CheckResult) => void }) {
   const { state } = useFormState();
   const noteName = `check.${item.key}.note`;
   const noteError = state.fieldErrors?.[noteName];
@@ -162,11 +163,8 @@ function CheckRow({ item, result, onPick }: { item: CheckItem; result: CheckResu
     <div className={`flex flex-col gap-2 py-3 pr-4 pl-[18px] ${row}`}>
       <input type="hidden" name="checkKeys" value={item.key} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="flex min-w-0 flex-[1_1_200px] flex-col gap-0.5">
-          <span className="text-sm" id={`label-${item.key}`}>
-            {item.label}
-          </span>
-          {item.help ? <span className="text-xs text-faint">{item.help}</span> : null}
+        <span className="min-w-0 flex-[1_1_200px] text-sm" id={`label-${item.key}`} title={item.help || undefined}>
+          {item.label}
         </span>
         <div role="radiogroup" aria-labelledby={`label-${item.key}`} className="flex gap-0.5 rounded-[10px] bg-tri p-[3px]">
           {OPTIONS.map((o) => {
@@ -174,7 +172,7 @@ function CheckRow({ item, result, onPick }: { item: CheckItem; result: CheckResu
             return (
               <label
                 key={o.value}
-                className={`relative flex h-[30px] cursor-pointer items-center rounded-[7px] border px-[11px] text-xs select-none ${on ? o.on : 'border-line-input bg-white font-medium text-muted hover:text-ink'}`}
+                className={`relative flex h-[30px] cursor-pointer items-center rounded-[7px] border px-[11px] text-xs whitespace-nowrap select-none ${on ? o.on : 'border-line-input bg-white font-medium text-muted hover:text-ink'}`}
               >
                 <input type="radio" name={`check.${item.key}.result`} value={o.value} checked={on} onChange={() => onPick(o.value)} className="hw-peer" />
                 {o.label}

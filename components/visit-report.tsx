@@ -18,25 +18,25 @@ export function VisitReport({ visit, homeId }: { visit: Visit; homeId: string })
       <dl className="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(150px,1fr))]">
         <div className="flex flex-col gap-1 rounded-[14px] border border-line bg-card px-[18px] py-4">
           <dt className="text-xs text-muted">Inside</dt>
-          <dd className="font-display text-[30px] leading-tight">{visit.indoorTempC !== null ? fmtTemp(visit.indoorTempC) : '–'}</dd>
+          <dd className="font-display text-[30px]">{visit.indoorTempC !== null ? fmtTemp(visit.indoorTempC) : '–'}</dd>
         </div>
         <div className="flex flex-col gap-1 rounded-[14px] bg-ok-soft px-[18px] py-4">
           <dt className="text-xs text-ok">OK</dt>
-          <dd className="font-display text-[30px] leading-tight text-ok-strong">{visit.okCount}</dd>
+          <dd className="font-display text-[30px] text-ok-strong">{visit.okCount}</dd>
         </div>
         <div className="flex flex-col gap-1 rounded-[14px] bg-concern-soft px-[18px] py-4">
           <dt className="text-xs text-concern">Concerns</dt>
-          <dd className="font-display text-[30px] leading-tight text-concern-strong">{visit.concernCount}</dd>
+          <dd className="font-display text-[30px] text-concern-strong">{visit.concernCount}</dd>
         </div>
       </dl>
 
       <Card size="section" title="Checklist" className="gap-1">
-        <ul className="mt-1 flex flex-col">
+        <ul className="mt-2 flex flex-col">
           {checks.map((c) => (
             <li key={c.key} className="flex flex-col gap-1 border-b border-skeleton-soft py-2.5 last:border-0">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm">{c.label}</span>
-                <Badge tone={TONE[c.result]} size="md">
+                <Badge tone={TONE[c.result]} size="row">
                   {CHECK_RESULT[c.result]}
                 </Badge>
               </div>
@@ -48,7 +48,7 @@ export function VisitReport({ visit, homeId }: { visit: Visit; homeId: string })
 
       {visit.photos.length ? (
         <Card size="section" title="Photos">
-          <PhotoGrid photos={visit.photos} />
+          <PhotoGrid photos={visit.photos} captions={false} />
         </Card>
       ) : null}
 

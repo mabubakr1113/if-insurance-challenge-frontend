@@ -41,7 +41,7 @@ export default async function VisitPage({ params, searchParams }: PageProps<'/ho
           )}{' '}
           · {visit.visitorName}
         </span>
-        <h1 className="font-display text-[38px] leading-[1.1] font-normal tracking-[-0.025em]">{fmtDateTime(visit.visitedAt, { year: true })}</h1>
+        <h1 className="font-display text-[38px] leading-[1.1] font-normal tracking-[-0.025em]">{fmtDateTime(visit.visitedAt)}</h1>
       </div>
       <VisitReport visit={visit} homeId={homeId} />
       <div className="no-print flex flex-wrap items-center justify-between gap-3">
