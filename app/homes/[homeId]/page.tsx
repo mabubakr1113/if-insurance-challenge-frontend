@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AutoRefresh } from '@/components/auto-refresh';
+import { HomeSummaryDrawer } from '@/components/home-summary-drawer';
 import { Icon } from '@/components/icons';
 import { h1, row, rowHover } from '@/components/styles';
 import { SupervisionCard } from '@/components/supervision';
@@ -12,6 +13,7 @@ import type { Task } from '@/lib/contract';
 import { fmtDate, fmtDateTime, fmtSlot, helsinkiHour } from '@/lib/format';
 import { canHelp, getDashboard, isClosed, isCoordinator, requireMember } from '@/lib/guards';
 import { getPlan } from '@/lib/home-data';
+import { buildHomeSummary } from '@/lib/home-summary';
 import { BOOKING_STATUS, firstName } from '@/lib/labels';
 
 export const metadata: Metadata = { title: 'Overview' };
@@ -75,11 +77,14 @@ export default async function OverviewPage({ params, searchParams }: PageProps<'
           <h1 className={h1}>{headline}</h1>
           <span className="text-[15px] text-muted">{sub}</span>
         </div>
-        {helper ? (
-          <ButtonLink href={`${base}/visits/new`} icon="plus">
-            Record a visit
-          </ButtonLink>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2.5">
+          <HomeSummaryDrawer summary={buildHomeSummary(d, plan)} />
+          {helper ? (
+            <ButtonLink href={`${base}/visits/new`} icon="plus">
+              Record a visit
+            </ButtonLink>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-start gap-7">

@@ -62,6 +62,10 @@ The demo-person cookie selects a fictional role. Participants never need Supabas
 
 Everything simulated (weather events, SMS and email, the partner's side) is labelled as such in the UI.
 
+On the weather page, **Weather by date** looks up any day from today through the next 15 days (Helsinki dates), alongside the four-day preview. It shows the low, high, wind gusts and snow. The date stays in the URL for sharing and back/forward navigation. This needs the companion backend's `GET /api/homes/:homeId/weather/day?date=YYYY-MM-DD` endpoint. Date lookups do not create alerts or tasks. Simulated days retain their demo label; dates beyond the simulation use a separately labelled real forecast.
+
+The overview's **Summarise this home** button opens a drawer with task counts, prioritised next steps, weather, visits and recent updates. It currently builds the summary locally from the authorised dashboard and care-plan data, with a short preparation animation; no external AI service is called. Each opening captures a snapshot so background refreshes do not change the text while it is being read. The drawer supports keyboard focus, Escape, backdrop dismissal and links to the relevant records.
+
 ## Deploying to Vercel
 
 Deploy the backend first, then:

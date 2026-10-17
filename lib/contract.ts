@@ -187,6 +187,12 @@ export interface EssentialStatus { key: EssentialKey; label: string; why: string
 
 export interface ForecastDay { date: string; minC: number; maxC: number; gustMs: number; snowCm: number }
 
+export interface DatedForecast {
+  source: ForecastSource;
+  fetchedAt: string | null;
+  day: ForecastDay;
+}
+
 export interface WeatherAlert {
   id: string;
   rule: WeatherRule;

@@ -21,7 +21,7 @@ export function daySummary(d: ForecastDay, t: HomeWeather['thresholds']): string
   return `High ${fmtTemp(d.maxC)} · ${rest}`;
 }
 
-export function ForecastSource({ weather }: { weather: HomeWeather }) {
+export function ForecastSource({ weather }: { weather: Pick<HomeWeather, 'source' | 'fetchedAt'> }) {
   if (weather.source === 'simulated') return <SimLabel>Simulated forecast (demo)</SimLabel>;
   return <>Open-Meteo forecast{weather.fetchedAt ? `, updated ${fmtDate(weather.fetchedAt)} at ${fmtTime(weather.fetchedAt)}` : ''}</>;
 }

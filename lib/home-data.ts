@@ -1,12 +1,13 @@
 import 'server-only';
 import { cache } from 'react';
-import type { HomeWeather, PlanResponse, TaskFilter, Visit, VisitSummary } from './contract';
+import type { DatedForecast, HomeWeather, PlanResponse, TaskFilter, Visit, VisitSummary } from './contract';
 import { read } from './guards';
 
 /* Per-request cached reads used by several home pages. */
 
 export const getPlan = cache((homeId: string, filter: TaskFilter = 'all') => read<PlanResponse>(`/api/homes/${homeId}/tasks?filter=${filter}`));
 export const getWeather = cache((homeId: string) => read<HomeWeather>(`/api/homes/${homeId}/weather`));
+export const getWeatherForDate = cache((homeId: string, date: string) => read<DatedForecast>(`/api/homes/${homeId}/weather/day?date=${encodeURIComponent(date)}`));
 export const getVisits = cache((homeId: string) => read<VisitSummary[]>(`/api/homes/${homeId}/visits`));
 
 export interface FollowUpOrigin {

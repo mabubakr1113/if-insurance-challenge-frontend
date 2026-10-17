@@ -30,14 +30,13 @@ export const initials = (name: string) =>
 
 /* ---------------- brand ---------------- */
 
-/** Text-only wordmark: "If Home Watch." with a small Prototype tag. No If logo or brand assets. */
+/** Text-only wordmark: "If Home Watch." No If logo or brand assets. */
 export function Wordmark({ href = '/' }: { href?: string | null }) {
   const mark = (
     <span className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
       <span className="font-display text-[22px] font-medium tracking-[-0.02em] whitespace-nowrap text-ink">
         If Home Watch<span className="text-accent">.</span>
       </span>
-      <span className="text-[11px] text-muted">Prototype</span>
     </span>
   );
   if (!href) return mark;
