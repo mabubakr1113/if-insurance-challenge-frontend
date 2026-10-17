@@ -147,8 +147,11 @@ export function supervisionText(s: Supervision): string {
   switch (s.state) {
     case 'no_visit_yet':
       return `No visit recorded yet. The first visit is due ${fmtDate(s.nextDueAt)}.`;
-    case 'ok':
-      return `Last visit ${s.daysSinceLastVisit ?? 0} days ago by ${s.lastVisitorName ?? 'someone'}. Next one due by ${fmtDate(s.nextDueAt)}.`;
+    case 'ok': {
+      const n = s.daysSinceLastVisit ?? 0;
+      const when = n === 0 ? 'today' : n === 1 ? 'yesterday' : `${n} days ago`;
+      return `Last visit ${when} by ${s.lastVisitorName ?? 'someone'}. Next one due by ${fmtDate(s.nextDueAt)}.`;
+    }
     case 'due_soon': {
       const n = Math.max(0, daysUntil(s.nextDueAt));
       return `Next visit due in ${n} ${n === 1 ? 'day' : 'days'} (${fmtDate(s.nextDueAt)}).`;

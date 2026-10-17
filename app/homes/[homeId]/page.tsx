@@ -41,8 +41,8 @@ export default async function OverviewPage({ params, searchParams }: PageProps<'
       <h1 className="sr-only">Overview</h1>
 
       {welcome === '1' ? (
-        <Notice tone="ok" title="Your care plan is ready" role="status">
-          <p>
+        <Notice tone="ok" role="status">
+          <p className="font-medium">
             Your care plan is ready: {d.counts.open} tasks. Start with the urgent ones, and invite family to share them.
           </p>
           <p className="mt-2">

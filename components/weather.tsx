@@ -91,7 +91,7 @@ export function AlertList({ alerts, tasks, homeId }: { alerts: WeatherAlert[]; t
         return (
           <li key={a.id} className="rounded-lg bg-attention-soft px-3 py-2 text-sm">
             <p className="font-medium text-attention">
-              {WEATHER_RULE[a.rule]}, {fmtDate(a.forDate)}: {a.message}
+              {WEATHER_RULE[a.rule]}: {a.message}
             </p>
             {a.taskId ? (
               <p className="mt-0.5">
