@@ -42,10 +42,10 @@ export function NoteForm({
         ) : null}
         <ChipGroup
           legend="Category"
-          legendSize="sm"
+          legendSize="hidden"
           name="category"
           size="sm"
-          defaultValue={note?.category ?? essential?.category ?? category ?? 'other'}
+          defaultValue={note?.category ?? essential?.category ?? category ?? 'water'}
           choices={options(NOTE_CATEGORY).map(([value, label]) => ({ value, label }))}
         />
         <Field label="Title" name="title">
@@ -54,11 +54,11 @@ export function NoteForm({
         <Field label="Details" name="body" hint={hint}>
           <textarea id="body" name="body" className={`${textareaBase} min-h-[100px]`} maxLength={2000} defaultValue={note?.body ?? ''} placeholder="Where it is, how it works, who to call" />
         </Field>
-        <Checkbox name="confirmed" defaultChecked={note?.confirmed ?? false} description="Leave it unticked if you’re writing from memory.">
+        <PhotoPicker homeId={homeId} initial={note?.photos ?? []} showLabel={false} size="sm" />
+        <Checkbox name="confirmed" defaultChecked={note?.confirmed ?? false}>
           I’ve checked this on site
         </Checkbox>
         <p className="text-xs text-attention">Don’t store alarm codes, key-box codes or passwords.</p>
-        <PhotoPicker homeId={homeId} initial={note?.photos ?? []} />
         {inDialog ? (
           <DialogActions>
             <DialogCancel />

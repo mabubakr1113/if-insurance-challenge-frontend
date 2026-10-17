@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Dialog } from '@/components/dialog';
 import { NoteForm } from '@/components/note-form';
-import { button, row } from '@/components/styles';
+import { button, card } from '@/components/styles';
 import { ToastOnLoad } from '@/components/toaster';
-import { Badge, ButtonLink, Empty, Eyebrow, ListBox, PageHeader } from '@/components/ui';
+import { Badge, ButtonLink, Empty, PageHeader } from '@/components/ui';
 import type { EssentialStatus, NoteCategory, NotesResponse } from '@/lib/contract';
 import { fmtDate } from '@/lib/format';
 import { canHelp, getHome, isClosed, read, requireMember } from '@/lib/guards';
@@ -60,16 +60,12 @@ export default async function NotesPage({ params, searchParams }: PageProps<'/ho
         }
       />
 
-      <section aria-labelledby="essentials" className="flex flex-col gap-2.5">
-        <Eyebrow as="h2" id="essentials">
-          Essentials
-        </Eyebrow>
-        <ListBox>
+      <section aria-label="Essentials" className={`${card} px-[22px] py-2`}>
           {data.essentials.map((e) => {
             const state = essentialState(e);
             const href = helper ? (e.noteId ? `${notesHref}?note=${e.noteId}` : `${notesHref}?essential=${e.key}`) : e.noteId ? `${base}/notes/${e.noteId}` : null;
             return (
-              <div key={e.key} className={`flex flex-wrap items-center justify-between gap-3 px-[18px] py-3.5 ${row}`}>
+              <div key={e.key} className="flex flex-wrap items-center justify-between gap-3 border-b border-skeleton-soft py-3.5">
                 <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-[3px]">
                   <span className="text-[15px] font-semibold">{e.label}</span>
                   <span className="text-[13px] text-muted">{e.why}</span>
@@ -88,7 +84,6 @@ export default async function NotesPage({ params, searchParams }: PageProps<'/ho
               </div>
             );
           })}
-        </ListBox>
       </section>
 
       {byCategory.length === 0 ? (
@@ -107,7 +102,7 @@ export default async function NotesPage({ params, searchParams }: PageProps<'/ho
       ) : (
         byCategory.map(([label, notes]) => (
           <section key={label} aria-label={label} className="flex flex-col gap-2.5">
-            <Eyebrow as="h2">{label}</Eyebrow>
+            <h2 className="text-[15px] font-semibold text-muted">{label}</h2>
             <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))]">
               {notes.map((n) => (
                 <li key={n.id}>
