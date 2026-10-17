@@ -34,7 +34,7 @@ interface Check {
   route: string;
   actor: string | null;
   as: string;
-  expect: string[] | { redirect: string };
+  expect: string[] | { redirect: string; cookieActor?: string };
 }
 
 async function prepare() {
@@ -88,6 +88,14 @@ async function run(check: Check): Promise<string | null> {
   const location = res.headers.get('location') ?? '';
 
   if (!Array.isArray(check.expect)) {
+    if (check.expect.cookieActor) {
+      const cookie = res.headers.get('set-cookie') ?? '';
+      const actor = decodeURIComponent(cookie.match(/hw_actor=([^;]+)/)?.[1] ?? '');
+      if (actor !== check.expect.cookieActor) return 'demo entry did not select the example coordinator';
+      if (!cookie.includes('HttpOnly') || !res.headers.get('cache-control')?.includes('no-store')) return 'demo entry must set a private, uncached cookie';
+      const problem = await run({ route: check.expect.redirect, actor, as: 'participant', expect: ['Lindqvist'] });
+      if (problem) return `opening the home with the new cookie: ${problem}`;
+    }
     if (res.status >= 300 && res.status < 400 && location.includes(check.expect.redirect)) return null;
     const html = res.status === 200 ? await res.text() : '';
     // A redirect after streaming started arrives as a 200 with a client-side redirect to the target.
@@ -109,6 +117,9 @@ async function main() {
   const checks: Check[] = [
     { route: '/', actor: null, as: 'none', expect: ['someone has to look after it'] },
     { route: '/demo', actor: null, as: 'none', expect: ['Simulated events'] },
+    { route: '/demo/start', actor: null, as: 'new participant', expect: { redirect: e, cookieActor: ids.sanna } },
+    { route: '/demo/start', actor: 'member:00000000-0000-0000-0000-000000000000', as: 'stale demo person', expect: { redirect: e, cookieActor: ids.sanna } },
+    { route: '/demo/start', actor: ids.partner, as: 'returning participant', expect: { redirect: e, cookieActor: ids.sanna } },
     { route: '/invite/demo-virtanen', actor: null, as: 'none', expect: ['accepted by'] },
     { route: h, actor: ids.aino, as: 'Aino', expect: ['Needs attention'] },
     { route: `${h}/plan`, actor: ids.aino, as: 'Aino', expect: ['Needs an owner'] },

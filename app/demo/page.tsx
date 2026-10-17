@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { completePartnerVisit, resetDemo, simulateWeather, stopViewing, viewAs } from '@/app/actions/demo';
 import { ActionForm, ConfirmSubmit, SubmitButton } from '@/components/forms';
+import { StartDemoLink } from '@/components/start-demo-link';
 import { btnSecondary, btnSmall, link } from '@/components/styles';
 import { Badge, Card, Notice, PageHeader, SimLabel } from '@/components/ui';
 import { api, ApiError } from '@/lib/api';
@@ -21,7 +22,7 @@ const STORY_STATUS: Partial<Record<HomeStatus, string>> = {
 const COMPLETABLE: BookingStatus[] = ['pending_approval', 'requested', 'confirmed', 'in_progress'];
 
 export default async function DemoPage({ searchParams }: PageProps<'/demo'>) {
-  const { next: rawNext } = await searchParams;
+  const { next: rawNext, start } = await searchParams;
   const next = safeNext(typeof rawNext === 'string' ? rawNext : null);
 
   let personas: PersonasResponse;
@@ -69,7 +70,18 @@ export default async function DemoPage({ searchParams }: PageProps<'/demo'>) {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Demo" intro="Pick who you are. Switching is instant, and everyone sees the same live data." />
+      <PageHeader title="Demo" intro="Explore without an account. Everyone sees the same shared demo data." />
+
+      {start === 'unavailable' ? (
+        <Notice tone="attention" role="alert">
+          We couldn’t open the example home. Try again or choose a demo person below.
+        </Notice>
+      ) : null}
+
+      <Card title="Explore the example home">
+        <p className="mb-4 text-muted">Open a home with a care plan, visits and photos already in place. No signup, login or personal details needed.</p>
+        <StartDemoLink />
+      </Card>
 
       {next ? (
         <Notice tone="accent" role="status">

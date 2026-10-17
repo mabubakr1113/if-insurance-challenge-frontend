@@ -49,7 +49,7 @@ export default async function InvitePage({ params }: PageProps<'/invite/[token]'
           <p>This invitation was accepted by {invite.alreadyAcceptedBy.name}.</p>
           <ActionForm action={continueAs.bind(null, token, invite.home.id, invite.alreadyAcceptedBy.id, landing)} className="mt-4">
             <SubmitButton pendingText="Opening…">Continue as {invite.alreadyAcceptedBy.name}</SubmitButton>
-            <p className="mt-2 text-sm text-muted">A demo convenience: in a real service, they would sign in.</p>
+            <p className="mt-2 text-sm text-muted">Continue with this demo person. No account needed.</p>
           </ActionForm>
         </Card>
       </div>
