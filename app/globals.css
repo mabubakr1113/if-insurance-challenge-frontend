@@ -56,6 +56,13 @@
   --color-chip: #f3ebe6;
   --color-dot-normal: #d8c6bb;
   --color-unread-line: #d9b8c9;
+  /* Landing: the insurer's own site, a shade warmer than the app. */
+  --color-landing: #f7efea;
+  --color-landing-line: #e8d8ce;
+  --color-landing-tile: #fffaf7;
+  --color-landing-band: #f1e4dc;
+  --color-on-dark: #e9d9e4;
+  --color-on-dark-line: #5a3a58;
   --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-newsreader), Georgia, serif;
 }
