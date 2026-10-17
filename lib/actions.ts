@@ -21,7 +21,7 @@ const FRIENDLY: Record<string, string> = {
 export async function failure(err: unknown, messages: Record<string, string> = {}): Promise<ActionState> {
   unstable_rethrow(err);
   if (err instanceof ApiError) {
-    if (err.status === 401 || err.code === 'removed') {
+    if (!messages[err.code] && (err.status === 401 || err.code === 'removed')) {
       await clearActor();
       redirect('/demo');
     }
