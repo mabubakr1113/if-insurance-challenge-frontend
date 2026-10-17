@@ -35,7 +35,7 @@ No customer-specific or confidential insurance data is required.
 
 ## Running locally
 
-The frontend talks only to the backend, server to server. Start the backend first (see its README), then:
+Home data is read through the backend, server to server. The interactive map loads map tiles directly from Mapbox using a public token. Start the backend first (see its README), then:
 
 ```bash
 npm install
@@ -65,6 +65,8 @@ Everything simulated (weather events, SMS and email, the partner's side) is labe
 On the weather page, **Weather by date** looks up any day from today through the next 15 days (Helsinki dates), alongside the four-day preview. It shows the low, high, wind gusts and snow. The date stays in the URL for sharing and back/forward navigation. This needs the companion backend's `GET /api/homes/:homeId/weather/day?date=YYYY-MM-DD` endpoint. Date lookups do not create alerts or tasks. Simulated days retain their demo label; dates beyond the simulation use a separately labelled real forecast.
 
 The overview's **Summarise this home** button opens a drawer with task counts, prioritised next steps, weather, visits and recent updates. It currently builds the summary locally from the authorised dashboard and care-plan data, with a short preparation animation; no external AI service is called. Each opening captures a snapshot so background refreshes do not change the text while it is being read. The drawer supports keyboard focus, Escape, backdrop dismissal and links to the relevant records.
+
+**Home location** on the overview uses Mapbox GL JS and Mapbox Standard, with a 2D/3D switch, a marker at the home's saved coordinates, zoom/compass controls, recentering and directions. `next.config.ts` supplies the public Mapbox token by default; optionally set `NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN` in `.env.local` or the deployment environment to override it before building. The SDK and map requests load when the map approaches the viewport. 3D buildings use available Mapbox geometry and heights; no bespoke house model is fabricated. The map keeps its camera during overview refreshes and displays a retry state if loading fails.
 
 ## Deploying to Vercel
 
