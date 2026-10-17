@@ -51,7 +51,8 @@ export function Dialog({
   unstyledTrigger?: boolean;
   closeHref?: string;
   role?: 'dialog' | 'alertdialog';
-  width?: 'sm' | 'md' | 'lg';
+  /** sm 512px (confirmations), md 500px, lg 540px, or an exact max width in px. */
+  width?: 'sm' | 'md' | 'lg' | number;
 }) {
   const router = useRouter();
   const mounted = useMounted();
@@ -93,7 +94,7 @@ export function Dialog({
     };
   }, [shown, close]);
 
-  const max = width === 'sm' ? 'max-w-[460px]' : width === 'lg' ? 'max-w-[540px]' : 'max-w-[500px]';
+  const max = typeof width === 'number' ? '' : width === 'sm' ? 'max-w-[512px]' : width === 'lg' ? 'max-w-[540px]' : 'max-w-[500px]';
 
   return (
     <DialogContext.Provider value={{ close }}>
@@ -123,13 +124,14 @@ export function Dialog({
                 aria-labelledby={titleId}
                 aria-describedby={description ? descId : undefined}
                 tabIndex={-1}
+                style={typeof width === 'number' ? { maxWidth: width } : undefined}
                 className={`flex max-h-[calc(100vh-32px)] w-full ${max} flex-col gap-3.5 overflow-auto rounded-[18px] bg-card p-[26px] text-ink shadow-[0_30px_80px_rgba(42,21,41,0.3)] outline-none`}
               >
-                <h2 id={titleId} className="font-display text-[26px] leading-tight font-normal">
+                <h2 id={titleId} className="font-display text-[26px] font-normal">
                   {title}
                 </h2>
                 {description ? (
-                  <div id={descId} className="text-sm leading-[1.55] text-muted">
+                  <div id={descId} className="text-sm text-muted">
                     {description}
                   </div>
                 ) : null}
@@ -155,5 +157,5 @@ export function DialogCancel({ children = 'Cancel' }: { children?: ReactNode }) 
 
 /** The action row at the bottom right of a dialog. */
 export function DialogActions({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap justify-end gap-2 pt-1">{children}</div>;
+  return <div className="flex flex-wrap justify-end gap-2">{children}</div>;
 }

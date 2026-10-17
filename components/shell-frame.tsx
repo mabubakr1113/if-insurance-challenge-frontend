@@ -272,7 +272,7 @@ function PersonaButton({ persona, placement }: { persona: Persona; placement: 's
                     aria-checked={current}
                     disabled={!!picking}
                     onClick={() => (current ? setOpen(false) : pick(p.actor, p.landing))}
-                    className={`${item} ${current ? 'bg-hover-btn' : ''}`}
+                    className={`${item} ${current ? 'bg-chosen' : ''}`}
                   >
                     <span className="flex size-[30px] shrink-0 items-center justify-center rounded-lg bg-accent-soft text-xs font-bold">{initials(p.label)}</span>
                     <span className="flex min-w-0 flex-1 flex-col">

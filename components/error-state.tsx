@@ -43,20 +43,17 @@ export function ErrorState({ error, retry }: { error: unknown; retry: () => void
       <span className="flex size-14 items-center justify-center rounded-2xl bg-concern-soft text-concern">
         <Icon name="warning" size={26} strokeWidth={1.8} />
       </span>
-      <h1 className="font-display text-[32px] leading-tight font-normal tracking-[-0.02em]">{title}</h1>
+      <h1 className="font-display text-[32px] font-normal tracking-[-0.02em]">{title}</h1>
       <p className="text-base leading-[1.55] text-muted">
         {unreachable
           ? 'The Home Watch service didn’t respond. Nothing you entered was lost. Try again in a moment. If you’re running locally, start the backend on port 3001.'
           : 'The Home Watch service didn’t respond. Nothing you entered was lost. Try again in a moment.'}
       </p>
       <div className="flex flex-wrap justify-center gap-2.5">
-        <button type="button" className={button('primary')} disabled={pending} onClick={() => startTransition(() => retry())}>
+        <button type="button" className={button('primary', 'md', 'px-[18px]')} disabled={pending} onClick={() => startTransition(() => retry())}>
           {pending ? <Spinner /> : null}
           Try again
         </button>
-        <a href="/demo" className={button('secondary')}>
-          Demo
-        </a>
       </div>
       <p className="text-xs text-muted">Error code {unreachable ? 'HW-503' : digest ? `HW-${digest.slice(0, 8)}` : 'HW-500'}</p>
     </div>
