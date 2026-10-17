@@ -9,7 +9,7 @@ import { chip, h1, input, textarea } from '@/components/styles';
 import { Card, Facts } from '@/components/ui';
 import { fmtDate } from '@/lib/format';
 import { getHome, isClosed, isCoordinator, requireMember } from '@/lib/guards';
-import { BUILDING, HEATING, HOME_STATUS, options, WATER, YES_NO } from '@/lib/labels';
+import { BUILDING, HEATING, options, WATER, YES_NO } from '@/lib/labels';
 
 export const metadata: Metadata = { title: 'Settings' };
 
@@ -49,6 +49,7 @@ export default async function SettingsPage({ params, searchParams }: PageProps<'
         }
       >
         <Facts
+          className="mt-1"
           items={[
             ['Address', `${home.addressLine}, ${home.postalCode} ${home.city}`],
             ['Building', home.buildingType ? `${BUILDING[home.buildingType]}${home.yearBuilt ? `, built ${home.yearBuilt}` : ''}` : home.yearBuilt ? `Built ${home.yearBuilt}` : null],
@@ -57,7 +58,6 @@ export default async function SettingsPage({ params, searchParams }: PageProps<'
             ['Water', home.waterSource ? `${WATER[home.waterSource]} · main valve closed: ${yn(home.waterMainClosed)}` : null],
             ['Burglar alarm', home.hasAlarm ? YES_NO[home.hasAlarm] : null],
             ['Keys', home.keyHolder],
-            ['Status', HOME_STATUS[home.status]],
           ]}
         />
       </Card>
@@ -77,7 +77,7 @@ export default async function SettingsPage({ params, searchParams }: PageProps<'
               <legend className="sr-only">What has happened</legend>
               <div className="flex flex-wrap gap-2">
                 {STATUS_CHOICES.map((c) => (
-                  <label key={c.value} className={chip('md')}>
+                  <label key={c.value} className={chip('lg')}>
                     <input type="radio" name="status" value={c.value} defaultChecked={c.value === ''} className="hw-peer" />
                     {c.label}
                   </label>
@@ -99,12 +99,12 @@ export default async function SettingsPage({ params, searchParams }: PageProps<'
                 triggerVariant="danger"
                 pendingText="Closing…"
               >
-                <p>Open tasks stop, nobody gets new reminders, and the record stays readable and downloadable.</p>
-                <ul className="mt-2 list-disc pl-5 text-sm">
-                  <li>Open tasks are cancelled</li>
-                  <li>Active local visits are cancelled</li>
-                  <li>You can still download the record</li>
-                </ul>
+                <p>
+                  <span className="if-status" data-status="occupied">The home is marked as lived in again. </span>
+                  <span className="if-status" data-status="sold">The home is marked as sold. </span>
+                  <span className="if-status" data-status="transferred">The home is marked as passed to an heir. </span>
+                  Open tasks stop, nobody gets new reminders, and the record stays readable and downloadable.
+                </p>
               </ConfirmSubmit>
             </div>
           </ActionForm>

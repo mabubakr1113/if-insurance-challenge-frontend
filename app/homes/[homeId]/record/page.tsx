@@ -65,7 +65,6 @@ export default async function RecordPage({ params, searchParams }: PageProps<'/h
           }
           className="gap-1"
         >
-          {!everything ? <p className="mb-1 text-[13px] text-muted">Visits, completed tasks, local visits and weather alerts.</p> : null}
           <RecordList items={items} homeId={homeId} />
         </Card>
       </div>

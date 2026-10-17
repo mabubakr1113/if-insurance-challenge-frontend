@@ -70,11 +70,11 @@ export function Timeline({ items }: { items: Activity[] }) {
 export function RecordList({ items, homeId }: { items: Activity[]; homeId: string }) {
   if (!items.length) return <p className="text-sm text-muted">Nothing recorded yet.</p>;
   return (
-    <ul className="flex flex-col">
+    <ul className="mt-2 flex flex-col gap-1">
       {items.map((a) => {
         const href = activityHref(a, homeId);
         return (
-          <li key={a.id} className="flex gap-3 border-b border-skeleton-soft py-[9px] text-sm last:border-0">
+          <li key={a.id} className="flex gap-3 border-b border-skeleton-soft py-[9px] text-sm">
             <time dateTime={a.createdAt} title={fmtDateTime(a.createdAt)} className="w-24 shrink-0 text-[13px] text-muted">
               {fmtDate(a.createdAt)}
             </time>
