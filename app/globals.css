@@ -24,6 +24,7 @@
   --color-tri: #f5eee9;
   --color-tile: #f7f0ec;
   --color-selected: #fbf5f2;
+  --color-chosen: #f7efea;
   --color-skeleton: #efe3dc;
   --color-skeleton-mid: #f2e8e2;
   --color-skeleton-soft: #f4ebe5;
@@ -60,6 +61,13 @@
 }
 
 @theme {
+  /* The design sets a line height only where it means one; everything else uses the font's normal spacing. */
+  --text-xs--line-height: normal;
+  --text-sm--line-height: normal;
+  --text-base--line-height: normal;
+  --text-lg--line-height: normal;
+  --text-xl--line-height: normal;
+  --text-2xl--line-height: normal;
   /* The sidebar replaces the top bar from 720px. */
   --breakpoint-wide: 45rem;
   --animate-pulse-soft: hw-pulse 1.4s ease-in-out infinite;
@@ -101,6 +109,7 @@
 body {
   background: var(--color-paper);
   color: var(--color-ink);
+  line-height: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -198,6 +207,16 @@ label:has(> .hw-peer:focus-visible) {
 }
 .transition-step:has(input[name="status"][value="sold"]:checked, input[name="status"][value="transferred"]:checked) .if-cover {
   display: flex;
+}
+
+/* The close-plan confirmation names the chosen status. It renders in a portal, so match from <body>. */
+.if-status {
+  display: none;
+}
+body:has(input[name="status"][value="occupied"]:checked) .if-status[data-status="occupied"],
+body:has(input[name="status"][value="sold"]:checked) .if-status[data-status="sold"],
+body:has(input[name="status"][value="transferred"]:checked) .if-status[data-status="transferred"] {
+  display: inline;
 }
 
 /* Invite: the meaning of the chosen role. */

@@ -66,12 +66,14 @@ export const hint = 'text-[13px] text-muted';
 
 /* ---------------- choice chips (a styled radio or checkbox inside a label) ---------------- */
 
-export type ChipSize = 'sm' | 'md' | 'lg';
+export type ChipSize = 'sm' | 'md' | 'lg' | 'xl';
 
 const CHIP_SIZE: Record<ChipSize, string> = {
   sm: 'h-8 px-3 text-xs',
   md: 'h-9 px-[13px] text-[13px]',
-  lg: 'h-10 px-4 text-sm',
+  lg: 'h-[38px] px-3.5 text-sm',
+  /** Setup step 1: is anyone living in the home? */
+  xl: 'h-10 px-4 text-sm',
 };
 
 export const chip = (size: ChipSize = 'sm') =>

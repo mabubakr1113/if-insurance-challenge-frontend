@@ -4,7 +4,8 @@ import { Toaster } from '@/components/toaster';
 import './globals.css';
 
 const newsreader = Newsreader({ variable: '--font-newsreader', subsets: ['latin'], style: ['normal', 'italic'], axes: ['opsz'] });
-const hanken = Hanken_Grotesk({ variable: '--font-hanken', subsets: ['latin'] });
+// No metric-matched fallback face: glyphs Hanken lacks (→, ✓) then come from the system UI font, as in the design.
+const hanken = Hanken_Grotesk({ variable: '--font-hanken', subsets: ['latin'], adjustFontFallback: false });
 
 export const metadata: Metadata = {
   title: { default: 'If Home Watch (prototype)', template: '%s · If Home Watch' },
