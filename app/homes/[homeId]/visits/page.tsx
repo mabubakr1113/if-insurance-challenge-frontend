@@ -32,6 +32,7 @@ export default async function VisitsPage({ params }: PageProps<'/homes/[homeId]/
       <SupervisionStrip supervision={d.supervision} />
       {visits.length === 0 ? (
         <Empty
+          tall
           title="No visits recorded yet"
           action={helper ? <ButtonLink href={`${base}/visits/new`}>Record the first visit</ButtonLink> : null}
         >

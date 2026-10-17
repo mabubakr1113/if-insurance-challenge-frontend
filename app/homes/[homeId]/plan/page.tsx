@@ -85,6 +85,7 @@ export default async function PlanPage({ params, searchParams }: PageProps<'/hom
       {plan.tasks.length === 0 ? (
         plan.counts.all === 0 ? (
           <Empty
+            tall
             title="The care plan is empty"
             action={
               helper ? (
@@ -97,7 +98,7 @@ export default async function PlanPage({ params, searchParams }: PageProps<'/hom
             Tasks from setup, the weather and visits appear here. You can also add your own.
           </Empty>
         ) : (
-          <Empty title="Nothing here">No tasks match this filter right now.</Empty>
+          <Empty tall title="Nothing here">No tasks match this filter right now.</Empty>
         )
       ) : grouped ? (
         group(plan.tasks, filter === 'all').map(([title, list]) => (

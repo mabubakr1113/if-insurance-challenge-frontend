@@ -38,7 +38,7 @@ export function SupervisionStrip({ supervision: s }: { supervision: Supervision 
           )}
         </span>
       </div>
-      <Badge tone={state.tone} size="md">
+      <Badge tone={state.tone} size="lg">
         {state.label}
       </Badge>
     </section>
