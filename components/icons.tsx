@@ -2,6 +2,8 @@
 
 const PATHS = {
   overview: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
+  map: 'M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6zM9 3v15M15 6v15',
+  cube: 'M12 3l9 5v9l-9 5-9-5V8l9-5zM3 8l9 5 9-5M12 13v9M7.5 5.5l9 5',
   plan: 'M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2',
   visits: 'M8 3v3M16 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z',
   notes: 'M6 3h9l4 4v14H6zM14 3v5h5M9 13h6M9 17h6',

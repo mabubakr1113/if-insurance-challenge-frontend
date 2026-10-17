@@ -1,0 +1,62 @@
+/* Map controls use the same warm surfaces and plum ink as the home workspace. */
+.home-map .mapboxgl-map {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+.home-map .mapboxgl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid var(--color-line-input);
+  border-radius: 10px;
+  background: var(--color-card);
+  box-shadow: 0 2px 8px rgb(59 31 58 / 8%);
+}
+.home-map .mapboxgl-ctrl-group button {
+  width: 34px;
+  height: 34px;
+}
+.home-map .mapboxgl-ctrl-group button + button {
+  border-top-color: var(--color-line);
+}
+.home-map .mapboxgl-ctrl-group button:hover {
+  background-color: var(--color-hover-btn);
+}
+.home-map .mapboxgl-ctrl-scale {
+  border-color: var(--color-muted);
+  background: rgb(255 253 251 / 85%);
+  color: var(--color-ink);
+}
+.home-map-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.home-map-pin-label {
+  padding: 4px 9px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-card);
+  color: var(--color-ink);
+  font: 600 12px / 1.3 var(--font-sans);
+  box-shadow: 0 2px 8px rgb(59 31 58 / 12%);
+  white-space: nowrap;
+}
+.home-map-pin-icon {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--color-card);
+  border-radius: 50% 50% 50% 0;
+  background: var(--color-ink);
+  color: var(--color-white);
+  box-shadow: 0 3px 12px rgb(59 31 58 / 25%);
+  transform: rotate(-45deg);
+  margin-bottom: 9px;
+}
+.home-map-pin-icon svg {
+  transform: rotate(45deg);
+}
