@@ -8,7 +8,7 @@ const newsreader = Newsreader({ variable: '--font-newsreader', subsets: ['latin'
 const hanken = Hanken_Grotesk({ variable: '--font-hanken', subsets: ['latin'], adjustFontFallback: false });
 
 export const metadata: Metadata = {
-  title: { default: 'If Home Watch (prototype)', template: '%s · If Home Watch' },
+  title: { default: 'If Home Watch', template: '%s · If Home Watch' },
   description: 'Helps a family share the care of an empty home after a death: what needs doing, who is on it, and help when nobody can go.',
 };
 
