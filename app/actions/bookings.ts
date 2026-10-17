@@ -13,10 +13,10 @@ export async function createBooking(homeId: string, taskId: string | null, canAp
   const slotStart = text(fd, 'slotStart');
   const accessMethod = oneOf(fd, 'accessMethod', ACCESS);
   const errors: Record<string, string> = {};
-  if (!packageKey) errors.packageKey = 'Choose a visit';
-  if (!slotStart) errors.slotStart = 'Choose a time';
-  if (!accessMethod) errors.accessMethod = 'Choose how the partner gets in';
-  if (canApprove && !checked(fd, 'confirmAuthority')) errors.confirmAuthority = 'Confirm that you can authorise access for this visit';
+  if (!packageKey) errors.packageKey = 'Choose a visit.';
+  if (!slotStart) errors.slotStart = 'Choose a time.';
+  if (!accessMethod) errors.accessMethod = 'Choose how the partner gets in.';
+  if (canApprove && !checked(fd, 'confirmAuthority')) errors.confirmAuthority = 'Confirm you can authorise access.';
   if (Object.keys(errors).length) return invalid(errors);
 
   const body: CreateBookingBody = {
@@ -28,15 +28,15 @@ export async function createBooking(homeId: string, taskId: string | null, canAp
     taskId,
     confirmAuthority: canApprove ? true : undefined,
   };
-  return act(() => api<Booking>(`/api/homes/${homeId}/bookings`, { body }), { redirect: (b) => `/homes/${homeId}/help/${b.id}` });
+  return act(() => api<Booking>(`/api/homes/${homeId}/bookings`, { body }), { redirect: (b) => `/homes/${homeId}/help/${b.id}?new=1` });
 }
 
 export async function approveBooking(bookingId: string): Promise<ActionState> {
-  return act(() => api<Booking>(`/api/bookings/${bookingId}/approve`, { method: 'POST' }), { message: 'Approved and sent to the partner.' });
+  return act(() => api<Booking>(`/api/bookings/${bookingId}/approve`, { method: 'POST' }), { message: (b) => `Approved. ${b.partner.name} will confirm shortly.` });
 }
 
 export async function cancelBooking(bookingId: string, _prev: ActionState, fd: FormData): Promise<ActionState> {
   const reason = text(fd, 'reason');
-  if (!reason) return invalid({ reason: 'Give a short reason' });
-  return act(() => api<Booking>(`/api/bookings/${bookingId}/cancel`, { body: { reason } }), { message: 'The visit is cancelled.' });
+  if (!reason) return invalid({ reason: 'Add a short reason for the partner.' });
+  return act(() => api<Booking>(`/api/bookings/${bookingId}/cancel`, { body: { reason } }), { message: 'Visit cancelled. No charge.' });
 }

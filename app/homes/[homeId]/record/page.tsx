@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import { ActivityList } from '@/components/activity-list';
-import { RecordSummary } from '@/components/record-summary';
-import { btn, btnSecondary } from '@/components/styles';
+import Link from 'next/link';
+import { RecordList } from '@/components/activity-list';
+import { DownloadLink } from '@/components/download-link';
+import { button } from '@/components/styles';
 import { Card, Notice, PageHeader } from '@/components/ui';
 import type { ActivityType, HomeRecord } from '@/lib/contract';
 import { read, requireMember } from '@/lib/guards';
-import { RELATION, ROLE } from '@/lib/labels';
 
 export const metadata: Metadata = { title: 'Home record' };
 
@@ -19,54 +19,55 @@ const KEY_EVENTS: ActivityType[] = [
   'booking_completed',
   'booking_cancelled',
   'booking_declined',
+  'home_activated',
+  'home_transition',
 ];
 
-export default async function RecordPage({ params }: PageProps<'/homes/[homeId]/record'>) {
+export default async function RecordPage({ params, searchParams }: PageProps<'/homes/[homeId]/record'>) {
   const { homeId } = await params;
+  const { all } = await searchParams;
   await requireMember(homeId);
   const record = await read<HomeRecord>(`/api/homes/${homeId}/record`);
   const base = `/homes/${homeId}`;
+  const everything = all === '1';
   const activity = [...record.activity].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const keyEvents = activity.filter((a) => KEY_EVENTS.includes(a.type));
+  const items = everything ? activity : activity.filter((a) => KEY_EVENTS.includes(a.type));
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Home record" intro="A complete record of what was checked and done for this home.">
-        <a href={`${base}/record/download`} className={btnSecondary} download>
-          Download (JSON)
-        </a>
-        <a href={`${base}/record/print`} className={btn}>
-          Print or save as PDF
-        </a>
-      </PageHeader>
+      <PageHeader
+        title="Home record"
+        intro="A complete record of what was checked and done for this home."
+        actions={
+          <>
+            <DownloadLink href={`${base}/record/download`} className={button('secondary')}>
+              Download (JSON)
+            </DownloadLink>
+            <a href={`${base}/record/print`} className={button('primary')}>
+              Print or save as PDF
+            </a>
+          </>
+        }
+      />
 
-      <Notice tone="accent" title="About this record">
+      <Notice tone="info" title="About this record.">
         {record.disclaimer}
       </Notice>
 
-      <Card title="Summary">
-        <RecordSummary record={record} />
-      </Card>
-
-      <Card title="Key events">
-        <p className="-mt-1 mb-2 text-sm text-muted">Visits, completed tasks, local visits and weather alerts.</p>
-        <ActivityList items={keyEvents} homeId={homeId} absolute />
-      </Card>
-
-      <Card title="Everything, newest first">
-        <ActivityList items={activity} homeId={homeId} absolute />
-      </Card>
-
-      <Card title="Family members">
-        <ul className="flex flex-col gap-1">
-          {record.members.map((m) => (
-            <li key={m.id}>
-              {m.name} · {ROLE[m.role]} · {RELATION[m.relation]}
-              {m.canAuthorise ? ' · can approve visits' : ''}
-            </li>
-          ))}
-        </ul>
-      </Card>
+      <div className="grid items-start gap-5 [grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr))]">
+        <Card
+          size="section"
+          title={everything ? 'Everything, newest first' : 'Key events'}
+          action={
+            <Link href={everything ? `${base}/record` : `${base}/record?all=1`} scroll={false} className="text-[13px] font-semibold text-muted hover:text-ink">
+              {everything ? 'Key events only' : 'Show everything'}
+            </Link>
+          }
+          className="gap-1"
+        >
+          <RecordList items={items} homeId={homeId} />
+        </Card>
+      </div>
     </div>
   );
 }

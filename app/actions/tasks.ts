@@ -32,19 +32,19 @@ export async function createTask(homeId: string, _prev: ActionState, fd: FormDat
 }
 
 export async function acceptTask(taskId: string): Promise<ActionState> {
-  return act(() => api<Task>(`/api/tasks/${taskId}/accept`, { method: 'POST' }), { message: 'You’re on it.' });
+  return act(() => api<Task>(`/api/tasks/${taskId}/accept`, { method: 'POST' }), { message: 'You’re on it. The family can see you took it.' });
 }
 
 export async function declineTask(taskId: string, _prev: ActionState, fd: FormData): Promise<ActionState> {
   const reason = text(fd, 'reason');
-  if (!reason) return invalid({ reason: 'Say briefly why, so the family can plan around it' });
-  return act(() => api<Task>(`/api/tasks/${taskId}/decline`, { body: { reason } }), { message: 'Thanks for letting the family know.' });
+  if (!reason) return invalid({ reason: 'Add a short reason.' });
+  return act(() => api<Task>(`/api/tasks/${taskId}/decline`, { body: { reason } }), { message: 'Thanks. The family can see you can’t take it.' });
 }
 
 export async function assignTask(taskId: string, _prev: ActionState, fd: FormData): Promise<ActionState> {
   const memberId = text(fd, 'memberId') || null;
   return act(() => api<Task>(`/api/tasks/${taskId}/assign`, { body: { memberId } }), {
-    message: (t) => (t.assignee ? `Assigned to ${t.assignee.name}.` : 'Nobody is assigned now.'),
+    message: (t) => (t.assignee ? `${t.assignee.name} is now the owner.` : 'Nobody is assigned now.'),
   });
 }
 
@@ -52,7 +52,7 @@ export async function completeTask(taskId: string, _prev: ActionState, fd: FormD
   const photoIds = all(fd, 'photoIds');
   return act(
     () => api<{ task: Task; nextTask: Task | null }>(`/api/tasks/${taskId}/complete`, { body: { note: optional(fd, 'note'), photoIds: photoIds.length ? photoIds : undefined } }),
-    { message: (r) => (r.nextTask?.dueAt ? `Done. The next one is due ${fmtDate(r.nextTask.dueAt)}.` : 'Done.') },
+    { message: (r) => (r.nextTask?.dueAt ? `Done. The next one is due ${fmtDate(r.nextTask.dueAt)}.` : 'Done. It’s in the home record.') },
   );
 }
 

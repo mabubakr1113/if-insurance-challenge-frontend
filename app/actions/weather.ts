@@ -7,6 +7,11 @@ import type { HomeWeather } from '@/lib/contract';
 
 export async function refreshForecast(homeId: string): Promise<ActionState> {
   return act(() => api<HomeWeather>(`/api/homes/${homeId}/weather/refresh`, { method: 'POST' }), {
-    message: (w) => (w.source === 'simulated' ? 'The simulated forecast stays in place until the presenter switches back.' : 'Forecast updated.'),
+    message: (w) =>
+      w.source === 'simulated'
+        ? 'The simulated forecast stays in place until the presenter switches back.'
+        : w.activeAlerts.length
+          ? `Forecast updated. ${w.activeAlerts.length} active ${w.activeAlerts.length === 1 ? 'alert' : 'alerts'}.`
+          : 'Forecast updated. No new alerts.',
   });
 }

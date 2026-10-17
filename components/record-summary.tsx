@@ -11,14 +11,15 @@ export function recordStats(r: HomeRecord) {
   return { family, partner, checkedBefore, period: `${start} → ${end}` };
 }
 
+/** Print view: the period and a row of number tiles. */
 export function RecordSummary({ record: r }: { record: HomeRecord }) {
   const s = recordStats(r);
   return (
     <div className="flex flex-col gap-3">
-      <p>
+      <p className="text-sm">
         <span className="text-muted">Period:</span> {s.period}
       </p>
-      <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <dl className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
         <Stat label="Visits" value={r.visits.length} hint={`${s.family} family · ${s.partner} partner`} />
         <Stat label="Tasks completed" value={r.completedTasks.length} />
         <Stat label="Open tasks" value={r.openTasks.length} />

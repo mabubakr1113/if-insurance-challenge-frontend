@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { recordVisit } from '@/app/actions/visits';
-import { Card, PageHeader } from '@/components/ui';
+import { PageHeader } from '@/components/ui';
 import { VisitForm } from '@/components/visit-form';
 import type { CheckItem } from '@/lib/contract';
 import { toLocalInput } from '@/lib/format';
@@ -22,20 +22,22 @@ export default async function NewVisitPage({ params }: PageProps<'/homes/[homeId
   const now = new Date();
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <PageHeader title="Record a visit" intro="Go through the checklist as you walk around the house. It takes about 15 minutes." />
-      <Card>
-        <VisitForm
-          action={recordVisit.bind(null, homeId)}
-          homeId={homeId}
-          checklist={checklist}
-          openTasks={plan.tasks.filter((t) => t.status === 'open' || t.status === 'accepted').map((t) => ({ id: t.id, title: t.title, templateKey: t.templateKey }))}
-          defaultVisitedAt={toLocalInput(now)}
-          maxVisitedAt={toLocalInput(new Date(now.getTime() + 60 * 60 * 1000))}
-          variant="family"
-          submitLabel="Save visit"
-        />
-      </Card>
+    <div className="flex flex-col gap-[18px]">
+      <PageHeader
+        title="Record a visit"
+        intro="Walk through the house and mark each check. Concerns become follow-up tasks."
+        back={{ href: `/homes/${homeId}/visits`, label: 'Visits' }}
+      />
+      <VisitForm
+        action={recordVisit.bind(null, homeId)}
+        homeId={homeId}
+        checklist={checklist}
+        openTasks={plan.tasks.filter((t) => t.status === 'open' || t.status === 'accepted').map((t) => ({ id: t.id, title: t.title, templateKey: t.templateKey }))}
+        defaultVisitedAt={toLocalInput(now)}
+        maxVisitedAt={toLocalInput(new Date(now.getTime() + 60 * 60 * 1000))}
+        variant="family"
+        submitLabel="Save the visit"
+      />
     </div>
   );
 }

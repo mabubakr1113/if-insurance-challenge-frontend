@@ -1,23 +1,27 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ActivityList } from '@/components/activity-list';
 import { AutoRefresh } from '@/components/auto-refresh';
-import { link } from '@/components/styles';
-import { SupervisionSummary } from '@/components/supervision';
-import { TaskItem } from '@/components/task-item';
-import { Badge, ButtonLink, Card, Empty, Notice } from '@/components/ui';
-import { AlertList, ForecastSource, ForecastTable } from '@/components/weather';
+import { Icon } from '@/components/icons';
+import { h1, row, rowHover } from '@/components/styles';
+import { SupervisionCard } from '@/components/supervision';
+import { TaskRow } from '@/components/task-item';
+import { ToastOnLoad } from '@/components/toaster';
+import { ArrowLink, Badge, ButtonLink, ListBox, Notice } from '@/components/ui';
+import { WeatherAlertCard } from '@/components/weather';
 import type { Task } from '@/lib/contract';
-import { fmtDate, fmtDateTime, fmtSlot } from '@/lib/format';
+import { fmtDate, fmtDateTime, fmtSlot, helsinkiHour } from '@/lib/format';
 import { canHelp, getDashboard, isClosed, isCoordinator, requireMember } from '@/lib/guards';
 import { getPlan } from '@/lib/home-data';
-import { bookingText, BOOKING_STATUS, firstName, ROLE } from '@/lib/labels';
+import { BOOKING_STATUS, firstName } from '@/lib/labels';
 
 export const metadata: Metadata = { title: 'Overview' };
 
+const greetingFor = (hour: number) => (hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening');
+
+/** Deliberately sparse: one question, what needs me now? */
 export default async function OverviewPage({ params, searchParams }: PageProps<'/homes/[homeId]'>) {
   const { homeId } = await params;
-  const { welcome } = await searchParams;
+  const { welcome, closed: justClosed } = await searchParams;
   await requireMember(homeId);
   const [d, plan] = await Promise.all([getDashboard(homeId), getPlan(homeId)]);
   const base = `/homes/${homeId}`;
@@ -25,203 +29,139 @@ export default async function OverviewPage({ params, searchParams }: PageProps<'
   const helper = canHelp(d.me) && !closed;
   const coordinator = isCoordinator(d.me) && !closed;
   const tasksById = new Map<string, Task>(plan.tasks.map((t) => [t.id, t]));
-  const slotFor = (t: Task) =>
-    d.activeBooking && t.bookingId === d.activeBooking.id ? fmtSlot(d.activeBooking.slotStart, d.activeBooking.slotEnd) : null;
 
-  const statusParts = [
-    d.counts.needsOwner ? `${d.counts.needsOwner} ${d.counts.needsOwner === 1 ? 'thing needs' : 'things need'} an owner` : null,
-    d.counts.overdue ? `${d.counts.overdue} overdue` : null,
-  ].filter(Boolean);
-  const nextDue = fmtDate(d.supervision.nextDueAt);
-  const statusLine = statusParts.length ? `${statusParts.join(' · ')} · next visit due ${nextDue}` : `Nothing urgent. Next visit due ${nextDue}.`;
+  const empty = plan.counts.all === 0;
+  const n = d.counts.needsOwner;
+  const headline = empty ? 'Let’s build the care plan' : n ? `${n} ${n === 1 ? 'thing needs' : 'things need'} an owner` : 'Nothing urgent';
+  const sub = empty
+    ? 'No tasks yet. Add the first one or record a visit.'
+    : [d.counts.overdue ? `${d.counts.overdue} overdue` : null, `next visit due ${fmtDate(d.supervision.nextDueAt)}`]
+        .filter(Boolean)
+        .join(' · ')
+        .replace(/^./, (c) => c.toUpperCase());
+
+  const attention = d.needsAttention.slice(0, 4);
+  const myTasks = d.myTasks.slice(0, 3);
+  const missing = d.essentialsMissing.length;
+  const booking = d.activeBooking;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       {!closed ? <AutoRefresh seconds={10} /> : null}
-      <h1 className="sr-only">Overview</h1>
+      {justClosed === '1' ? <ToastOnLoad message="Plan closed. The record stays available." removeParams={['closed']} /> : null}
 
       {welcome === '1' ? (
-        <Notice tone="ok" role="status">
-          <p className="font-medium">
-            Your care plan is ready: {d.counts.open} tasks. Start with the urgent ones, and invite family to share them.
-          </p>
-          <p className="mt-2">
-            <Link href={`${base}/family`} className={link}>
-              Invite family
-            </Link>
-          </p>
-        </Notice>
-      ) : null}
-
-      <p className={`text-lg font-medium ${statusParts.length ? 'text-attention' : ''}`}>{statusLine}</p>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Supervision">
-          <SupervisionSummary supervision={d.supervision} />
-        </Card>
-        <Card
-          title="Weather"
+        <Notice
+          tone="success"
+          role="status"
           action={
-            <Link href={`${base}/weather`} className={`${link} text-sm`}>
-              Weather details
+            <Link
+              href={coordinator ? `${base}/family?invite=1` : `${base}/family`}
+              className="inline-flex h-9 items-center rounded-[9px] border border-ok px-3.5 text-[13px] font-semibold text-ok-strong hover:bg-white/50"
+            >
+              Invite family
             </Link>
           }
         >
-          <ForecastTable weather={d.weather} />
-          <div className="mt-2">
-            <ForecastSource weather={d.weather} />
-          </div>
-          {d.weather.activeAlerts.length ? (
-            <div className="mt-3">
-              <AlertList alerts={d.weather.activeAlerts} tasks={tasksById} homeId={homeId} />
-            </div>
-          ) : null}
-        </Card>
-      </div>
-
-      <Card title="Needs attention">
-        {d.needsAttention.length ? (
-          <ul className="flex flex-col gap-3">
-            {d.needsAttention.map((t) => (
-              <TaskItem key={t.id} task={t} homeId={homeId} variant="attention" canAccept={helper} canRequestVisit={helper} bookingSlot={slotFor(t)} />
-            ))}
-          </ul>
-        ) : (
-          <Empty>Nothing needs attention right now.</Empty>
-        )}
-      </Card>
-
-      {d.activeBooking ? (
-        <Card title="Local visit in progress">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="font-medium">
-                {d.activeBooking.package.name} · {d.activeBooking.partner.name}
-              </p>
-              <p className="text-sm text-muted">{fmtSlot(d.activeBooking.slotStart, d.activeBooking.slotEnd)}</p>
-              <p className="mt-1">{bookingText(d.activeBooking)}</p>
-            </div>
-            <span className="flex flex-col items-end gap-2">
-              <Badge tone="accent">{BOOKING_STATUS[d.activeBooking.status]}</Badge>
-              <Link href={`${base}/help/${d.activeBooking.id}`} className={link}>
-                See the visit
-              </Link>
-            </span>
-          </div>
-        </Card>
+          <span className="text-[15px] font-medium">Your care plan is ready. Start with the urgent tasks, then invite family to share them.</span>
+        </Notice>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="My tasks">
-          {d.myTasks.length ? (
-            <ul className="flex flex-col divide-y divide-line">
-              {d.myTasks.map((t) => (
-                <li key={t.id} className="flex items-baseline justify-between gap-3 py-2">
-                  <Link href={`${base}/tasks/${t.id}`} className={link}>
-                    {t.title}
+      <div className="flex flex-wrap items-end justify-between gap-5">
+        <div className="flex min-w-0 flex-col gap-2">
+          <span className="text-sm text-muted">
+            {greetingFor(helsinkiHour())}, {firstName(d.me.name)}
+          </span>
+          <h1 className={h1}>{headline}</h1>
+          <span className="text-[15px] text-muted">{sub}</span>
+        </div>
+        {helper ? (
+          <ButtonLink href={`${base}/visits/new`} icon="plus">
+            Record a visit
+          </ButtonLink>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap items-start gap-7">
+        <div className="flex min-w-0 flex-[999_1_440px] flex-col gap-8">
+          <section aria-labelledby="attention" className="flex flex-col gap-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="attention" className="text-[15px] font-semibold">
+                Needs attention
+              </h2>
+              <ArrowLink href={`${base}/plan`}>Care plan</ArrowLink>
+            </div>
+            {attention.length ? (
+              <ListBox>
+                {attention.map((t) => (
+                  <TaskRow key={t.id} task={t} homeId={homeId} variant="attention" canAccept={helper} />
+                ))}
+              </ListBox>
+            ) : (
+              <div className="flex flex-col items-center gap-1 rounded-2xl border border-dashed border-line-input px-5 py-7 text-center">
+                <span className="text-[15px] font-semibold">Nothing needs attention</span>
+                <span className="text-sm text-muted">Urgent, overdue and unowned tasks show up here.</span>
+              </div>
+            )}
+          </section>
+
+          {myTasks.length ? (
+            <section aria-labelledby="mine" className="flex flex-col gap-2.5">
+              <h2 id="mine" className="text-[15px] font-semibold">
+                My tasks
+              </h2>
+              <ListBox>
+                {myTasks.map((t) => (
+                  <Link
+                    key={t.id}
+                    href={`${base}/tasks/${t.id}`}
+                    className={`flex items-center justify-between gap-3 px-[18px] py-3.5 ${row} ${rowHover}`}
+                  >
+                    <span className="text-sm font-medium">{t.title}</span>
+                    <span className={`shrink-0 text-[13px] ${t.isOverdue ? 'font-semibold text-attention' : 'text-muted'}`}>
+                      {t.dueAt ? fmtDateTime(t.dueAt) : 'No due date'}
+                    </span>
                   </Link>
-                  <span className={`shrink-0 text-sm ${t.isOverdue ? 'font-medium text-attention' : 'text-muted'}`}>
-                    {t.dueAt ? fmtDateTime(t.dueAt) : 'No due date'}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted">You have no tasks right now.</p>
-          )}
-        </Card>
+                ))}
+              </ListBox>
+            </section>
+          ) : null}
+        </div>
 
-        <Card title="Missing house essentials">
-          {d.essentialsMissing.length ? (
-            <ul className="flex flex-col gap-2">
-              {d.essentialsMissing.map((e) => (
-                <li key={e.key} className="flex items-baseline justify-between gap-3">
-                  <span>
-                    {e.label} {e.noteId ? 'not confirmed yet' : 'not added yet'}
-                  </span>
-                  {helper ? (
-                    <Link
-                      href={e.noteId ? `${base}/notes/${e.noteId}` : `${base}/notes/new?essential=${e.key}&category=${e.category}`}
-                      className={`${link} shrink-0 text-sm`}
-                    >
-                      {e.noteId ? 'Edit' : 'Add'}
-                      <span className="sr-only"> {e.label}</span>
-                    </Link>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted">All the essentials are in the house notes.</p>
-          )}
-        </Card>
+        <aside aria-label="At a glance" className="flex min-w-0 flex-[1_1_290px] flex-col gap-3.5">
+          <WeatherAlertCard weather={d.weather} tasks={tasksById} href={`${base}/weather`} />
+          <SupervisionCard supervision={d.supervision} />
+          {booking ? (
+            <RowCard href={`${base}/help/${booking.id}`} title="Local visit" line={`${booking.package.name} · ${fmtSlot(booking.slotStart, booking.slotEnd)}`}>
+              <Badge tone={booking.status === 'pending_approval' || booking.status === 'requested' ? 'attention' : 'accent'}>{BOOKING_STATUS[booking.status]}</Badge>
+            </RowCard>
+          ) : null}
+          {missing ? (
+            <RowCard
+              href={`${base}/notes`}
+              title="House essentials"
+              line={`${missing} ${missing === 1 ? 'item' : 'items'} missing or not confirmed`}
+              warn
+            />
+          ) : null}
+        </aside>
       </div>
-
-      <Card
-        title="Family"
-        action={
-          coordinator ? (
-            <Link href={`${base}/family`} className={`${link} text-sm`}>
-              Invite family
-            </Link>
-          ) : null
-        }
-      >
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {d.members.map((m) => (
-            <li key={m.id} className="rounded-lg bg-soft px-3 py-2">
-              <p className="font-medium">
-                {m.name} <span className="font-normal text-muted">· {ROLE[m.role]}</span>
-                {m.status === 'invited' ? <span className="font-normal text-muted"> · invited</span> : null}
-              </p>
-              <p className="text-sm text-muted">
-                {m.stats.openTasks} open {m.stats.openTasks === 1 ? 'task' : 'tasks'} ·{' '}
-                {m.stats.lastVisitAt ? `last visit ${fmtDate(m.stats.lastVisitAt)}` : 'no visits yet'}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </Card>
-
-      <Card
-        title="Recent activity"
-        action={
-          <Link href={`${base}/record`} className={`${link} text-sm`}>
-            See everything
-          </Link>
-        }
-      >
-        <ActivityList items={d.recentActivity} homeId={homeId} />
-      </Card>
-
-      {!closed ? (
-        <Card title="Quick actions">
-          <div className="flex flex-wrap gap-2">
-            {helper ? <ButtonLink href={`${base}/visits/new`}>Record a visit</ButtonLink> : null}
-            {helper ? (
-              <ButtonLink href={`${base}/notes/new`} variant="secondary">
-                Add a house note
-              </ButtonLink>
-            ) : null}
-            {helper ? (
-              <ButtonLink href={`${base}/help`} variant="secondary">
-                Request a local visit
-              </ButtonLink>
-            ) : null}
-            {helper ? (
-              <ButtonLink href={`${base}/tasks/new`} variant="secondary">
-                Add a task
-              </ButtonLink>
-            ) : null}
-            {!helper ? (
-              <p className="text-sm text-muted">
-                Viewers can read and comment. Ask {firstName(d.members.find((m) => m.role === 'coordinator')?.name ?? 'the coordinator')} to change your
-                role.
-              </p>
-            ) : null}
-          </div>
-        </Card>
-      ) : null}
     </div>
+  );
+}
+
+/** A single clickable card row in the rail. */
+function RowCard({ href, title, line, warn = false, children }: { href: string; title: string; line: string; warn?: boolean; children?: React.ReactNode }) {
+  return (
+    <Link href={href} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-card px-5 py-[18px] hover:bg-hover">
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-sm font-semibold">{title}</span>
+        <span className={`text-[13px] ${warn ? 'text-attention' : 'text-muted'}`}>{line}</span>
+      </span>
+      <span className="flex shrink-0 items-center gap-2">
+        {children}
+        <Icon name="next" size={16} strokeWidth={2} color="var(--color-muted)" />
+      </span>
+    </Link>
   );
 }

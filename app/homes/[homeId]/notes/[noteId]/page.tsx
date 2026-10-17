@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { NoteForm } from '@/components/note-form';
 import { PhotoGrid } from '@/components/photo-grid';
-import { link } from '@/components/styles';
 import { Card, PageHeader } from '@/components/ui';
 import type { Note, NotesResponse } from '@/lib/contract';
 import { fmtDateTime } from '@/lib/format';
@@ -16,40 +14,28 @@ export default async function NotePage({ params }: PageProps<'/homes/[homeId]/no
   const me = await requireMember(homeId);
   const [note, home] = await Promise.all([read<Note>(`/api/notes/${noteId}`), getHome(homeId)]);
   const editable = canHelp(me.member) && !isClosed(home);
-  const base = `/homes/${homeId}`;
+  const back = { href: `/homes/${homeId}/notes`, label: 'House notes' };
 
   if (editable) {
     const data = note.essentialKey ? await read<NotesResponse>(`/api/homes/${homeId}/notes`) : null;
     const essential = data?.essentials.find((e) => e.key === note.essentialKey) ?? null;
     return (
-      <div className="mx-auto max-w-2xl">
-        <p className="mb-2 text-sm">
-          <Link href={`${base}/notes`} className={link}>
-            House notes
-          </Link>
-        </p>
-        <PageHeader title={`Edit: ${note.title}`} intro={`Last updated by ${note.updatedByLabel}, ${fmtDateTime(note.updatedAt)}`} />
-        <NoteForm homeId={homeId} note={note} essential={essential} />
+      <div className="mx-auto flex max-w-[640px] flex-col gap-6">
+        <PageHeader title="Edit note" intro={`Last updated by ${note.updatedByLabel}, ${fmtDateTime(note.updatedAt)}`} back={back} />
+        <Card size="section" className="gap-3.5">
+          <NoteForm homeId={homeId} note={note} essential={essential} />
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <p className="mb-2 text-sm">
-        <Link href={`${base}/notes`} className={link}>
-          House notes
-        </Link>
-      </p>
-      <PageHeader title={note.title} intro={`${NOTE_CATEGORY[note.category]} · updated by ${note.updatedByLabel}, ${fmtDateTime(note.updatedAt)}`} />
-      <Card>
-        <p className="whitespace-pre-line">{note.body || 'No text.'}</p>
-        {!note.confirmed ? <p className="mt-3 text-sm text-attention">Not checked on site</p> : null}
-        {note.photos.length ? (
-          <div className="mt-4">
-            <PhotoGrid photos={note.photos} />
-          </div>
-        ) : null}
+    <div className="mx-auto flex max-w-[640px] flex-col gap-6">
+      <PageHeader title={note.title} intro={`${NOTE_CATEGORY[note.category]} · updated by ${note.updatedByLabel}, ${fmtDateTime(note.updatedAt)}`} back={back} />
+      <Card size="section">
+        <p className="text-[15px] leading-[1.6] whitespace-pre-line">{note.body || 'No details written down.'}</p>
+        {!note.confirmed ? <p className="text-xs font-semibold text-attention">Not checked on site</p> : null}
+        <PhotoGrid photos={note.photos} />
       </Card>
     </div>
   );

@@ -2,26 +2,33 @@ import Link from 'next/link';
 import { acceptTask } from '@/app/actions/tasks';
 import type { Task } from '@/lib/contract';
 import { fmtDate, fmtDateTime, fmtOverdue } from '@/lib/format';
-import type { FollowUpOrigin } from '@/lib/home-data';
-import { CATEGORY, firstName } from '@/lib/labels';
+import { firstName } from '@/lib/labels';
 import { ActionForm, SubmitButton } from './forms';
-import { btnSecondary, btnSmall, link } from './styles';
-import { Badge } from './ui';
+import { Icon } from './icons';
+import { row, rowHover } from './styles';
+import { Badge, StatusDot, type DotTone } from './ui';
+
+const isActive = (t: Task) => t.status === 'open' || t.status === 'accepted';
+
+/** Unowned (and not covered by a booked visit) or overdue: the meta line turns amber. */
+export const isWarn = (t: Task) => isActive(t) && ((!t.assignee && !t.bookingId) || t.isOverdue);
 
 /** Why a task is listed under "Needs attention". */
 export function attentionReason(t: Task): string {
-  if (t.needsOwner) return 'Nobody has taken this yet';
-  if (t.isOverdue && t.dueAt) return fmtOverdue(t.dueAt);
-  if (t.priority === 'urgent') return t.dueAt ? `Urgent, due ${fmtDateTime(t.dueAt)}` : 'Urgent';
-  return t.dueAt ? `Due ${fmtDateTime(t.dueAt)}` : 'Open';
+  const overdue = t.isOverdue && t.dueAt ? fmtOverdue(t.dueAt) : null;
+  if (!t.assignee && t.bookingId) return 'A local visit is booked';
+  if (!t.assignee) return overdue ? `Nobody has taken this yet · ${overdue}` : 'Nobody has taken this yet';
+  if (overdue) return `${firstName(t.assignee.name)} · ${overdue}`;
+  return t.dueAt ? `${firstName(t.assignee.name)} · due ${fmtDateTime(t.dueAt)}` : `${firstName(t.assignee.name)} is on it`;
 }
 
-/** "Due Tue 21 Oct, 18:00" · "3 days overdue" · "Done Mon 20 Oct by Mikko" · "Cancelled" */
-export function dueText(t: Task): string | null {
+/** The one meta line in the care plan: "Nobody yet · due Mon 20 Oct, 18:00" · "Mikko · due Sun 19 Oct, 18:00" · "Done Mon 13 Oct by Mikko" */
+export function planMeta(t: Task): string {
   if (t.status === 'done') return `Done${t.completedAt ? ` ${fmtDate(t.completedAt)}` : ''}${t.completedByLabel ? ` by ${firstName(t.completedByLabel)}` : ''}`;
   if (t.status === 'cancelled') return 'Cancelled';
-  if (t.isOverdue && t.dueAt) return fmtOverdue(t.dueAt);
-  return t.dueAt ? `Due ${fmtDateTime(t.dueAt)}` : null;
+  const when = t.isOverdue && t.dueAt ? fmtOverdue(t.dueAt) : t.dueAt ? `due ${fmtDateTime(t.dueAt)}` : null;
+  const who = t.assignee ? firstName(t.assignee.name) : t.bookingId ? 'Local visit booked' : 'Nobody yet';
+  return when ? `${who} · ${when}` : who;
 }
 
 const WEATHER_ORIGIN: Record<string, string> = {
@@ -30,102 +37,66 @@ const WEATHER_ORIGIN: Record<string, string> = {
   roof_snow_check: 'From the heavy-snow forecast',
 };
 
-export function originHint(t: Task, origin?: FollowUpOrigin): string | null {
+export function originHint(t: Task): string | null {
   if (t.origin === 'weather') return (t.templateKey && WEATHER_ORIGIN[t.templateKey]) || 'From the forecast';
-  if (t.origin === 'visit_concern') return origin ? `From ${firstName(origin.visitorName)}’s visit` : 'From a visit';
+  if (t.origin === 'visit_concern') return 'From a visit';
   return null;
 }
-
-/** Short source, e.g. "If terms §5.5". */
-export const shortSource = (t: Task) => t.source?.label ?? null;
 
 export function PriorityBadge({ priority }: { priority: Task['priority'] }) {
   if (priority === 'urgent') return <Badge tone="attention">Urgent</Badge>;
-  if (priority === 'high') return <Badge tone="accent">High</Badge>;
+  if (priority === 'high') return <Badge tone="high">High</Badge>;
   return null;
 }
 
-/**
- * One task in a list. `variant="attention"` (overview) leads with why it's listed;
- * `variant="plan"` shows every detail of 8.P8.
- */
-export function TaskItem({
-  task: t,
-  homeId,
-  variant,
-  canAccept,
-  canRequestVisit,
-  bookingSlot,
-  origin,
-}: {
-  task: Task;
-  homeId: string;
-  variant: 'attention' | 'plan';
-  canAccept: boolean;
-  canRequestVisit: boolean;
-  bookingSlot?: string | null;
-  origin?: FollowUpOrigin;
-}) {
-  const href = `/homes/${homeId}/tasks/${t.id}`;
-  const active = t.status === 'open' || t.status === 'accepted';
-  const owner = t.assignee ? t.assignee.name : active ? 'Nobody yet' : null;
-  const lines: (string | null)[] =
-    variant === 'plan'
-      ? [
-          shortSource(t),
-          t.recurrenceDays ? `Repeats every ${t.recurrenceDays} days` : null,
-          t.declinedBy.length ? `Can’t do it: ${t.declinedBy.map((p) => firstName(p.name)).join(', ')}` : null,
-          originHint(t, origin),
-        ]
-      : [];
-  const urgentLine = variant === 'attention' ? attentionReason(t) : dueText(t);
-  const urgentTone = t.needsOwner || t.isOverdue;
+export function dotTone(t: Task): DotTone {
+  if (t.status === 'done') return 'done';
+  if (t.isOverdue) return 'overdue';
+  if (t.priority === 'urgent' || (!t.assignee && !t.bookingId)) return 'urgent';
+  if (t.priority === 'high') return 'high';
+  return 'normal';
+}
 
+function CheckCircle({ t }: { t: Task }) {
+  const done = t.status === 'done';
+  const border = done ? 'border-ok bg-ok' : isWarn(t) ? 'border-sim-line' : 'border-dot-normal';
   return (
-    <li className="flex flex-col gap-2 rounded-xl border border-line bg-card p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <Link href={href} className={`${link} text-base font-semibold`}>
-          {t.title}
-        </Link>
-        <span className="flex flex-wrap gap-1.5">
-          <PriorityBadge priority={t.priority} />
-          {variant === 'plan' ? <Badge>{CATEGORY[t.category]}</Badge> : null}
-        </span>
-      </div>
-      <div className="flex flex-col gap-0.5 text-sm">
-        {urgentLine ? <p className={urgentTone ? 'font-medium text-attention' : 'text-muted'}>{urgentLine}</p> : null}
-        {owner ? (
-          <p>
-            <span className="text-muted">Owner:</span> {owner}
-          </p>
-        ) : null}
-        {t.needsInfo ? <p className="text-attention">Not confirmed: {t.needsInfo}</p> : null}
-        {t.bookingId ? <p className="text-accent">{bookingSlot ? `Local visit booked for ${bookingSlot}` : 'Local visit booked'}</p> : null}
-        {lines.filter(Boolean).map((l) => (
-          <p key={l} className="text-muted">
-            {l}
-          </p>
-        ))}
-      </div>
-      {active && (canAccept || canRequestVisit) ? (
-        <div className="flex flex-wrap items-start gap-2 pt-1">
-          {canAccept && t.status === 'open' ? (
-            <ActionForm action={acceptTask.bind(null, t.id)} showMessage>
-              <SubmitButton className={btnSmall} pendingText="Saving…">
-                I’ll do it
-              </SubmitButton>
-            </ActionForm>
-          ) : null}
-          {canRequestVisit && t.needsOwner && !t.bookingId ? (
-            <Link href={`/homes/${homeId}/help?taskId=${t.id}`} className={`${btnSecondary} ${btnSmall}`}>
-              Request a local visit
-            </Link>
-          ) : null}
-          <Link href={href} className={`${btnSecondary} ${btnSmall}`}>
-            Open
+    <span aria-hidden="true" className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${border}`}>
+      {done ? <Icon name="check" size={11} strokeWidth={3.5} color="#ffffff" /> : null}
+    </span>
+  );
+}
+
+/**
+ * One task row inside a list container. The whole row opens the task (a stretched link); "I'll do it" sits
+ * above it. `attention` (overview) leads with a status dot and why it's listed; `plan` with a round check.
+ */
+export function TaskRow({ task: t, homeId, variant, canAccept }: { task: Task; homeId: string; variant: 'attention' | 'plan'; canAccept: boolean }) {
+  const done = t.status === 'done' || t.status === 'cancelled';
+  const warn = isWarn(t);
+  const line = variant === 'attention' ? attentionReason(t) : planMeta(t);
+  return (
+    <div className={`relative flex flex-wrap items-center gap-x-3.5 gap-y-2.5 px-[18px] ${variant === 'attention' ? 'py-4' : 'py-[15px]'} ${row} ${rowHover}`}>
+      {variant === 'attention' ? <StatusDot tone={dotTone(t)} /> : <CheckCircle t={t} />}
+      <div className="flex min-w-0 flex-[1_1_220px] flex-col gap-[3px]">
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/homes/${homeId}/tasks/${t.id}`}
+            className={`text-[15px] font-semibold after:absolute after:inset-0 after:content-[''] ${done ? 'text-muted line-through' : 'text-ink'}`}
+          >
+            {t.title}
           </Link>
+          <PriorityBadge priority={t.priority} />
+        </div>
+        <span className={`text-[13px] ${warn ? 'font-semibold text-attention' : 'text-muted'}`}>{line}</span>
+      </div>
+      {canAccept && t.status === 'open' && !t.assignee ? (
+        <div className="relative z-10">
+          <ActionForm action={acceptTask.bind(null, t.id)}>
+            <SubmitButton size="sm">I’ll do it</SubmitButton>
+          </ActionForm>
         </div>
       ) : null}
-    </li>
+    </div>
   );
 }

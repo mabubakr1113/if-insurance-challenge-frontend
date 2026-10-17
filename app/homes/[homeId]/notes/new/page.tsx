@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { NoteForm } from '@/components/note-form';
-import { PageHeader } from '@/components/ui';
+import { Card, PageHeader } from '@/components/ui';
 import type { NoteCategory, NotesResponse } from '@/lib/contract';
 import { canHelp, getHome, isClosed, read, requireMember } from '@/lib/guards';
 import { NOTE_CATEGORY } from '@/lib/labels';
@@ -20,9 +20,11 @@ export default async function NewNotePage({ params, searchParams }: PageProps<'/
   const category = typeof sp.category === 'string' && sp.category in NOTE_CATEGORY ? (sp.category as NoteCategory) : null;
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <PageHeader title={essential ? `Add: ${essential.label}` : 'Add a house note'} />
-      <NoteForm homeId={homeId} essential={essential} category={category} />
+    <div className="mx-auto flex max-w-[640px] flex-col gap-6">
+      <PageHeader title={essential ? `Add: ${essential.label}` : 'Add a house note'} back={{ href: `/homes/${homeId}/notes`, label: 'House notes' }} />
+      <Card size="section" className="gap-3.5">
+        <NoteForm homeId={homeId} essential={essential} category={category} />
+      </Card>
     </div>
   );
 }

@@ -1,16 +1,17 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { partnerAccept, partnerComplete, partnerDecline, partnerStart } from '@/app/actions/partner';
 import { AutoRefresh } from '@/components/auto-refresh';
+import { BookingBadge } from '@/components/booking-bits';
+import { Dialog, DialogActions, DialogCancel } from '@/components/dialog';
 import { ActionForm, Field, SubmitButton } from '@/components/forms';
 import { PhotoGrid } from '@/components/photo-grid';
 import { input, link } from '@/components/styles';
-import { Badge, Card, Facts, Notice, SimLabel } from '@/components/ui';
+import { Card, Facts, Notice, PageHeader, SimLabel } from '@/components/ui';
 import { VisitForm } from '@/components/visit-form';
 import type { BookingStatus, PartnerJobDetail, Visit } from '@/lib/contract';
 import { fmtCount, fmtMoney, fmtSlot, fmtTemp } from '@/lib/format';
 import { read, requirePartner } from '@/lib/guards';
-import { ACCESS_METHOD, BOOKING_STATUS } from '@/lib/labels';
+import { ACCESS_METHOD } from '@/lib/labels';
 
 export const metadata: Metadata = { title: 'Visit job' };
 
@@ -33,130 +34,123 @@ export default async function PartnerJobPage({ params }: PageProps<'/partner/job
   const canReport = b.status === 'in_progress' || b.status === 'confirmed';
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       {b.status === 'requested' ? <AutoRefresh seconds={10} /> : null}
-      <div>
-        <p className="text-sm">
-          <Link href="/partner" className={link}>
-            All jobs
-          </Link>
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          {home.addressLine}, {home.postalCode} {home.city}
-        </h1>
-        {home.estateName ? <p className="text-muted">Estate of {home.estateName}</p> : null}
-        <p className="mt-2 flex flex-wrap items-center gap-2">
-          <Badge tone={b.status === 'completed' ? 'ok' : b.status === 'requested' ? 'attention' : 'accent'}>{BOOKING_STATUS[b.status]}</Badge>
-          {STATUS_TEXT[b.status]}
-        </p>
-      </div>
+      <PageHeader
+        back={{ href: '/partner', label: 'Visit requests' }}
+        eyebrow={home.estateName ? `Estate of ${home.estateName}` : undefined}
+        title={`${home.addressLine}, ${home.postalCode} ${home.city}`}
+        intro={
+          <span className="flex flex-wrap items-center gap-2">
+            <BookingBadge status={b.status} />
+            {STATUS_TEXT[b.status]}
+          </span>
+        }
+        actions={
+          b.status === 'requested' ? (
+            <>
+              <Dialog title="Decline the visit?" description="The family is told straight away and can book another time." trigger="Decline" triggerVariant="quiet" role="alertdialog" width="sm">
+                <ActionForm action={partnerDecline.bind(null, b.id)} className="flex flex-col gap-3.5">
+                  <Field label="Reason for the family" name="reason">
+                    <input id="reason" name="reason" className={input} maxLength={1000} placeholder="e.g. No free time on that day" />
+                  </Field>
+                  <DialogActions>
+                    <DialogCancel>Keep it</DialogCancel>
+                    <SubmitButton variant="danger" pendingText="Declining…">
+                      Decline
+                    </SubmitButton>
+                  </DialogActions>
+                </ActionForm>
+              </Dialog>
+              <ActionForm action={partnerAccept.bind(null, b.id)}>
+                <SubmitButton pendingText="Accepting…">Accept</SubmitButton>
+              </ActionForm>
+            </>
+          ) : b.status === 'confirmed' ? (
+            <ActionForm action={partnerStart.bind(null, b.id)}>
+              <SubmitButton pendingText="Starting…">Start the visit</SubmitButton>
+            </ActionForm>
+          ) : null
+        }
+      />
 
-      <Card title="The visit">
-        <Facts
-          items={[
-            ['Time', fmtSlot(b.slotStart, b.slotEnd)],
-            ['Visit', `${b.package.name} (${b.package.durationMin} min)`],
-            ['Includes', <ul key="i" className="list-disc pl-5">{b.package.includes.map((i) => <li key={i}>{i}</li>)}</ul>],
-            ['Task', b.taskTitle],
-            ['Notes from the family', b.notes],
-          ]}
-        />
-        <p className="mt-3">
-          You’re paid {fmtMoney(b.package.partnerPriceCents)}. If’s coordination fee is charged to the family separately. <SimLabel>Prototype price, not a quote</SimLabel>
-        </p>
-      </Card>
+      {visit ? (
+        <Notice tone="success" title="Report sent.">
+          {visit.indoorTempC !== null ? `${fmtTemp(visit.indoorTempC)} inside · ` : ''}
+          {visit.okCount} OK · {fmtCount(visit.concernCount, 'concern')} · {fmtCount(visit.photos.length, 'photo')}
+        </Notice>
+      ) : null}
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Card title="Access">
+      <div className="grid items-start gap-3.5 [grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))]">
+        <Card size="section" title="The visit" className="gap-2">
+          <Facts
+            items={[
+              ['Time', fmtSlot(b.slotStart, b.slotEnd)],
+              ['Visit', `${b.package.name} (${b.package.durationMin} min)`],
+              ['Includes', b.package.includes.join(', ')],
+              ['Task', b.taskTitle],
+              ['Notes', b.notes],
+            ]}
+          />
+          <p className="flex flex-wrap items-center gap-2 border-t border-line-soft pt-3 text-sm">
+            You’re paid <span className="font-display text-xl">{fmtMoney(b.package.partnerPriceCents)}</span>
+            <SimLabel>Prototype price, not a quote</SimLabel>
+          </p>
+        </Card>
+        <Card size="section" title="Access and contact" className="gap-2">
           <Facts
             items={[
               ['Method', ACCESS_METHOD[b.accessMethod]],
               ['Details', b.accessDetails],
               ['Key holder', job.keyHolder],
               ['Access notes', job.accessNotes],
+              [
+                'Family contact',
+                job.coordinator ? (
+                  <span key="c">
+                    {job.coordinator.name}
+                    {job.coordinator.phone ? (
+                      <>
+                        {' · '}
+                        <a href={`tel:${job.coordinator.phone.replace(/\s/g, '')}`} className={link}>
+                          {job.coordinator.phone}
+                        </a>
+                      </>
+                    ) : null}
+                  </span>
+                ) : null,
+              ],
             ]}
           />
         </Card>
-        <Card title="Contact">
-          {job.coordinator ? (
-            <p>
-              {job.coordinator.name}
-              {job.coordinator.phone ? (
-                <>
-                  {' · '}
-                  <a href={`tel:${job.coordinator.phone.replace(/\s/g, '')}`} className={link}>
-                    {job.coordinator.phone}
-                  </a>
-                </>
-              ) : null}
-            </p>
-          ) : (
-            <p className="text-muted">No contact given.</p>
-          )}
-          <p className="mt-2 text-sm text-muted">The family coordinator. Fictional person.</p>
-        </Card>
       </div>
 
-      <Card title="House essentials">
+      <Card size="section" title="House essentials" className="gap-3.5">
         {job.essentials.length ? (
           <ul className="flex flex-col gap-4">
             {job.essentials.map((n) => (
-              <li key={n.id}>
-                <p className="font-medium">{n.title}</p>
-                {n.body ? <p className="whitespace-pre-line text-sm">{n.body}</p> : null}
-                {n.photos.length ? (
-                  <div className="mt-2">
-                    <PhotoGrid photos={n.photos} />
-                  </div>
-                ) : null}
+              <li key={n.id} className="flex flex-col gap-1.5">
+                <p className="text-[15px] font-semibold">{n.title}</p>
+                {n.body ? <p className="text-sm leading-normal whitespace-pre-line text-ink-soft">{n.body}</p> : null}
+                <PhotoGrid photos={n.photos} captions={false} />
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-muted">The family hasn’t added house essentials yet.</p>
+          <p className="text-sm text-muted">The family hasn’t added house essentials yet.</p>
         )}
       </Card>
 
-      {b.status === 'requested' ? (
-        <Card title="Respond">
-          <div className="flex flex-col gap-4">
-            <ActionForm action={partnerAccept.bind(null, b.id)}>
-              <SubmitButton pendingText="Accepting…">Accept</SubmitButton>
-            </ActionForm>
-            <ActionForm action={partnerDecline.bind(null, b.id)} className="flex flex-col gap-3 border-t border-line pt-4">
-              <Field label="Reason for declining" name="reason">
-                <input id="reason" name="reason" className={input} required maxLength={1000} />
-              </Field>
-              <div>
-                <SubmitButton variant="secondary" pendingText="Declining…">
-                  Decline
-                </SubmitButton>
-              </div>
-            </ActionForm>
-          </div>
-        </Card>
-      ) : null}
-
-      {b.status === 'confirmed' ? (
-        <ActionForm action={partnerStart.bind(null, b.id)}>
-          <SubmitButton pendingText="Starting…">Start visit</SubmitButton>
-        </ActionForm>
-      ) : null}
-
       {canReport ? (
-        <Card title="Visit report">
-          <VisitForm action={partnerComplete.bind(null, b.id)} homeId={home.id} checklist={job.checklist} variant="partner" submitLabel="Complete visit" />
-        </Card>
+        <section id="report" aria-labelledby="report-title" className="flex scroll-mt-6 flex-col gap-4">
+          <h2 id="report-title" className="font-display text-[28px] leading-tight font-normal tracking-[-0.02em]">
+            Visit report
+          </h2>
+          <VisitForm action={partnerComplete.bind(null, b.id)} homeId={home.id} checklist={job.checklist} variant="partner" submitLabel="Send the report" />
+        </section>
       ) : null}
 
-      {visit ? (
-        <Notice tone="ok" title="Report sent">
-          {visit.indoorTempC !== null ? `${fmtTemp(visit.indoorTempC)} inside · ` : ''}
-          {visit.okCount} OK · {fmtCount(visit.concernCount, 'concern')} · {fmtCount(visit.photos.length, 'photo')}
-        </Notice>
-      ) : null}
-
-      <p className="text-sm text-muted">The partner and the family are fictional. Bookings are simulated.</p>
+      <p className="text-[13px] text-muted">The partner and the family are fictional. Bookings are simulated.</p>
     </div>
   );
 }

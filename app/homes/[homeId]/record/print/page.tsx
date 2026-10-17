@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import { AutoPrint, PrintButton } from '@/components/print-button';
 import { RecordSummary } from '@/components/record-summary';
-import { VisitReport } from '@/components/visit-report';
-import type { HomeRecord } from '@/lib/contract';
-import { fmtDate, fmtDateTime, fmtSlot } from '@/lib/format';
+import { Wordmark } from '@/components/ui';
+import type { CheckResult, HomeRecord, Visit } from '@/lib/contract';
+import { fmtDate, fmtDateTime, fmtSlot, fmtTemp } from '@/lib/format';
 import { read, requireMember } from '@/lib/guards';
-import { BOOKING_STATUS, HOME_STATUS, RELATION, ROLE, WEATHER_RULE, whoseHome } from '@/lib/labels';
+import { BOOKING_STATUS, CHECK_RESULT, HOME_STATUS, RELATION, ROLE, WEATHER_RULE, whoseHome } from '@/lib/labels';
 
 export const metadata: Metadata = { title: 'Home record (print)' };
 
@@ -17,11 +17,12 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
   const visits = [...r.visits].sort((a, b) => b.visitedAt.localeCompare(a.visitedAt));
 
   return (
-    <article className="mx-auto flex max-w-3xl flex-col gap-8 bg-white p-2 text-[15px] print:p-0">
+    <article className="mx-auto flex max-w-3xl flex-col gap-8 bg-white px-6 py-10 text-[15px] text-ink print:p-0">
       <AutoPrint />
-      <header className="border-b border-line pb-4">
-        <p className="text-sm text-muted">If Home Watch · Prototype · Home record</p>
-        <h1 className="mt-1 text-2xl font-semibold">{whoseHome(r.home.estateName)}</h1>
+      <header className="flex flex-col gap-1 border-b border-line pb-5">
+        <Wordmark href={null} />
+        <p className="mt-3 text-xs font-bold tracking-[0.07em] text-faint uppercase">Home record</p>
+        <h1 className="font-display text-[36px] leading-[1.08] font-normal tracking-[-0.025em]">{whoseHome(r.home.estateName)}</h1>
         <p>
           {r.home.addressLine}, {r.home.postalCode} {r.home.city} · {HOME_STATUS[r.home.status]}
         </p>
@@ -32,12 +33,12 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
       </header>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Summary</h2>
+        <h2 className="mb-2 font-display text-2xl font-normal">Summary</h2>
         <RecordSummary record={r} />
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Visits</h2>
+        <h2 className="mb-2 font-display text-2xl font-normal">Visits</h2>
         {visits.length ? (
           <div className="flex flex-col gap-6">
             {visits.map((v) => (
@@ -46,7 +47,7 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
                   {fmtDateTime(v.visitedAt, { year: true })} · {v.visitorName}
                   {v.visitorType === 'partner' ? ' (local partner visit)' : ''}
                 </h3>
-                <VisitReport visit={v} homeId={homeId} links={false} />
+                <PrintVisit visit={v} />
               </div>
             ))}
           </div>
@@ -56,7 +57,7 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Completed tasks</h2>
+        <h2 className="mb-2 font-display text-2xl font-normal">Completed tasks</h2>
         {r.completedTasks.length ? (
           <ul className="flex flex-col gap-1">
             {r.completedTasks.map((t) => (
@@ -73,7 +74,7 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Open tasks</h2>
+        <h2 className="mb-2 font-display text-2xl font-normal">Open tasks</h2>
         {r.openTasks.length ? (
           <ul className="flex flex-col gap-1">
             {r.openTasks.map((t) => (
@@ -89,7 +90,7 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Weather alerts</h2>
+        <h2 className="mb-2 font-display text-2xl font-normal">Weather alerts</h2>
         {r.alerts.length ? (
           <ul className="flex flex-col gap-1">
             {r.alerts.map((a) => (
@@ -105,7 +106,7 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Local visits</h2>
+        <h2 className="mb-2 font-display text-2xl font-normal">Local visits</h2>
         {r.bookings.length ? (
           <ul className="flex flex-col gap-1">
             {r.bookings.map((b) => (
@@ -120,7 +121,7 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
       </section>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Family members</h2>
+        <h2 className="mb-2 font-display text-2xl font-normal">Family members</h2>
         <ul className="flex flex-col gap-1">
           {r.members.map((m) => (
             <li key={m.id}>
@@ -135,5 +136,34 @@ export default async function RecordPrintPage({ params }: PageProps<'/homes/[hom
         <p className="mt-2 text-sm text-muted">Hackathon prototype. Fictional people, homes and partner. Not an If service.</p>
       </footer>
     </article>
+  );
+}
+
+const ORDER: Record<CheckResult, number> = { concern: 0, ok: 1, not_checked: 2 };
+
+/** A visit as plain lines for printing: temperature, checks (concerns first), notes and tasks. */
+function PrintVisit({ visit }: { visit: Visit }) {
+  const checks = [...visit.checks].sort((a, b) => ORDER[a.result] - ORDER[b.result]);
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      <p>
+        <span className="text-muted">Inside:</span> {visit.indoorTempC !== null ? fmtTemp(visit.indoorTempC) : 'not measured'} · {visit.okCount} OK ·{' '}
+        {visit.concernCount} {visit.concernCount === 1 ? 'concern' : 'concerns'} · {visit.photos.length} {visit.photos.length === 1 ? 'photo' : 'photos'}
+      </p>
+      <ul className="flex flex-col">
+        {checks.map((c) => (
+          <li key={c.key} className="flex justify-between gap-4 border-b border-line-soft py-1 last:border-0">
+            <span>
+              {c.label}
+              {c.note ? <span className={c.result === 'concern' ? 'text-concern' : 'text-muted'}> · {c.note}</span> : null}
+            </span>
+            <span className={`shrink-0 font-semibold ${c.result === 'concern' ? 'text-concern' : c.result === 'ok' ? 'text-ok' : 'text-muted'}`}>{CHECK_RESULT[c.result]}</span>
+          </li>
+        ))}
+      </ul>
+      {visit.notes ? <p className="whitespace-pre-line">{visit.notes}</p> : null}
+      {visit.completedTasks.length ? <p>Closed: {visit.completedTasks.map((t) => t.name).join(', ')}</p> : null}
+      {visit.followUpTasks.length ? <p>Follow-ups: {visit.followUpTasks.map((t) => t.title).join(', ')}</p> : null}
+    </div>
   );
 }

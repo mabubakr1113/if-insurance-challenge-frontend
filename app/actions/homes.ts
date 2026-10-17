@@ -42,12 +42,12 @@ export async function saveHomeSettings(homeId: string, _prev: ActionState, fd: F
 /** P21: what happens to the home next. Closes the plan; everything stays readable. */
 export async function transitionHome(homeId: string, _prev: ActionState, fd: FormData): Promise<ActionState> {
   const status = oneOf(fd, 'status', TRANSITIONS);
-  if (!status) return invalid({ status: 'Choose what happens to the home' });
+  if (!status) return invalid({ status: 'Choose what has happened to the home.' });
   const body: TransitionBody = {
     status,
     note: optional(fd, 'note'),
     newOwnerWantsCoverHelp: status === 'sold' || status === 'transferred' ? checked(fd, 'newOwnerWantsCoverHelp') : undefined,
   };
   if (text(fd, 'note').length > 2000) return invalid({ note: 'Keep the note under 2000 characters' });
-  return act(() => api<Home>(`/api/homes/${homeId}/transition`, { body }), { redirect: () => `/homes/${homeId}` });
+  return act(() => api<Home>(`/api/homes/${homeId}/transition`, { body }), { redirect: () => `/homes/${homeId}?closed=1` });
 }

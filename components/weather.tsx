@@ -1,114 +1,81 @@
 import Link from 'next/link';
 import type { ForecastDay, HomeWeather, Task, WeatherAlert } from '@/lib/contract';
-import { fmtDate, fmtSnow, fmtTemp, fmtTime, fmtWind, helsinkiYmd } from '@/lib/format';
+import { fmtDate, fmtSnow, fmtTemp, fmtTime, fmtWind } from '@/lib/format';
 import { firstName, WEATHER_RULE } from '@/lib/labels';
-import { link } from './styles';
 import { SimLabel } from './ui';
 
 /** Threshold words for a day, so colour is never the only signal. */
 export function dayFlags(d: ForecastDay, t: HomeWeather['thresholds']): string[] {
   const flags: string[] = [];
-  if (d.minC <= t.hardFrostC) flags.push('hard frost');
-  else if (d.minC <= t.frostC) flags.push('frost');
-  if (d.gustMs >= t.stormGustMs) flags.push('storm');
-  if (d.snowCm >= t.heavySnowCm) flags.push('heavy snow');
+  if (d.minC <= t.hardFrostC) flags.push('Hard frost');
+  else if (d.minC <= t.frostC) flags.push('Frost');
+  if (d.gustMs >= t.stormGustMs) flags.push('Storm');
+  if (d.snowCm >= t.heavySnowCm) flags.push('Heavy snow');
   return flags;
 }
 
-export function ForecastTable({ weather }: { weather: HomeWeather }) {
-  const today = helsinkiYmd();
-  const t = weather.thresholds;
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[22rem] text-left text-sm">
-        <caption className="sr-only">Forecast for today and the next 3 days</caption>
-        <thead className="text-muted">
-          <tr>
-            <th scope="col" className="py-1.5 pr-3 font-medium">
-              Day
-            </th>
-            <th scope="col" className="py-1.5 pr-3 font-medium">
-              Min / max
-            </th>
-            <th scope="col" className="py-1.5 pr-3 font-medium">
-              Gusts
-            </th>
-            <th scope="col" className="py-1.5 font-medium">
-              Snow
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-line">
-          {weather.days.map((d) => {
-            const flags = dayFlags(d, t);
-            return (
-              <tr key={d.date}>
-                <th scope="row" className="py-2 pr-3 font-medium">
-                  {d.date === today ? 'Today' : fmtDate(d.date)}
-                  {flags.length ? <span className="block text-xs font-semibold text-attention">{flags.join(', ')}</span> : null}
-                </th>
-                <td className={`py-2 pr-3 tabular-nums ${d.minC <= t.frostC ? 'font-semibold text-attention' : ''}`}>
-                  {fmtTemp(d.minC)} / {fmtTemp(d.maxC)}
-                </td>
-                <td className={`py-2 pr-3 tabular-nums ${d.gustMs >= t.stormGustMs ? 'font-semibold text-attention' : ''}`}>{fmtWind(d.gustMs)}</td>
-                <td className={`py-2 tabular-nums ${d.snowCm >= t.heavySnowCm ? 'font-semibold text-attention' : ''}`}>{fmtSnow(d.snowCm)}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
+/** "High 2 °C · Hard frost" or "High 2 °C · Gusts 6 m/s · Snow 2 cm" */
+export function daySummary(d: ForecastDay, t: HomeWeather['thresholds']): string {
+  const flags = dayFlags(d, t);
+  const rest = flags.length ? flags.join(', ') : [`Gusts ${fmtWind(d.gustMs)}`, d.snowCm > 0 ? `Snow ${fmtSnow(d.snowCm)}` : null].filter(Boolean).join(' · ');
+  return `High ${fmtTemp(d.maxC)} · ${rest}`;
 }
 
 export function ForecastSource({ weather }: { weather: HomeWeather }) {
   if (weather.source === 'simulated') return <SimLabel>Simulated forecast (demo)</SimLabel>;
-  return (
-    <p className="text-sm text-muted">
-      Forecast: Open-Meteo{weather.fetchedAt ? `, updated ${fmtTime(weather.fetchedAt)}` : ''}
-    </p>
-  );
+  return <>Open-Meteo forecast{weather.fetchedAt ? `, updated ${fmtDate(weather.fetchedAt)} at ${fmtTime(weather.fetchedAt)}` : ''}</>;
 }
 
-/** "Heating check: nobody has taken it yet" / "Mikko is on it" / "Done" */
+/** "nobody has taken it yet" / "Mikko is on it" / "done" */
 export function alertTaskState(alert: WeatherAlert, task: Task | undefined): string | null {
   if (!alert.taskId) return null;
   const status = task?.status ?? alert.taskStatus;
-  if (status === 'done') return 'Done';
-  if (status === 'cancelled') return 'Cancelled';
-  if (status === 'accepted') return task?.assignee ? `${firstName(task.assignee.name)} is on it` : 'Someone is on it';
-  if (task?.bookingId) return 'A local visit is booked';
-  return 'Nobody has taken it yet';
+  if (status === 'done') return task?.completedByLabel ? `done by ${firstName(task.completedByLabel)}` : 'done';
+  if (status === 'cancelled') return 'cancelled';
+  if (status === 'accepted') return task?.assignee ? `${firstName(task.assignee.name)} is on it` : 'someone is on it';
+  if (task?.bookingId) return 'a local visit is booked';
+  return 'nobody has taken it yet';
 }
 
-export function AlertList({ alerts, tasks, homeId }: { alerts: WeatherAlert[]; tasks: Map<string, Task>; homeId: string }) {
-  if (!alerts.length) return <p className="text-sm text-muted">No weather alerts right now.</p>;
+/** The number that matters for the alert's day: the low for frost, gusts for a storm, snow for heavy snow. */
+export function alertMeasure(alert: WeatherAlert, weather: HomeWeather): string | null {
+  const day = weather.days.find((d) => d.date === alert.forDate);
+  if (!day) return null;
+  if (alert.rule === 'storm') return `gusts ${fmtWind(day.gustMs)}`;
+  if (alert.rule === 'heavy_snow') return `${fmtSnow(day.snowCm)} of snow`;
+  return fmtTemp(day.minC);
+}
+
+/** Overview rail: the most pressing alert as an amber card that opens the weather page. */
+export function WeatherAlertCard({ weather, tasks, href }: { weather: HomeWeather; tasks: Map<string, Task>; href: string }) {
+  const alert = weather.activeAlerts[0];
+  if (!alert) {
+    return (
+      <Link href={href} className="flex flex-col gap-2 rounded-2xl border border-line bg-card p-5 hover:bg-hover">
+        <span className="text-[11px] font-bold tracking-[0.08em] text-faint uppercase">Weather</span>
+        <span className="font-display text-[23px] leading-[1.2]">No alerts for the next 3 days</span>
+        <span className="text-[13px] text-muted">
+          <ForecastSource weather={weather} />
+        </span>
+      </Link>
+    );
+  }
+  const task = alert.taskId ? tasks.get(alert.taskId) : undefined;
+  const measure = alertMeasure(alert, weather);
+  const state = alertTaskState(alert, task);
   return (
-    <ul className="flex flex-col gap-2">
-      {alerts.map((a) => {
-        const task = a.taskId ? tasks.get(a.taskId) : undefined;
-        const state = alertTaskState(a, task);
-        return (
-          <li key={a.id} className="rounded-lg bg-attention-soft px-3 py-2 text-sm">
-            <p className="font-medium text-attention">
-              {WEATHER_RULE[a.rule]}: {a.message}
-            </p>
-            {a.taskId ? (
-              <p className="mt-0.5">
-                <Link href={`/homes/${homeId}/tasks/${a.taskId}`} className={link}>
-                  {task?.title ?? 'The linked task'}
-                </Link>
-                : {state}
-              </p>
-            ) : null}
-            {a.source === 'simulated' ? (
-              <p className="mt-1">
-                <SimLabel>Simulated forecast (demo)</SimLabel>
-              </p>
-            ) : null}
-          </li>
-        );
-      })}
-    </ul>
+    <Link href={href} className="flex flex-col gap-2 rounded-2xl bg-attention-soft p-5 hover:bg-[#f8e7cd]">
+      <span className="flex flex-wrap items-center justify-between gap-2">
+        <span className="text-[11px] font-bold tracking-[0.08em] text-attention uppercase">
+          Weather alert{weather.activeAlerts.length > 1 ? ` · ${weather.activeAlerts.length}` : ''}
+        </span>
+        {alert.source === 'simulated' ? <span className="text-[11px] font-semibold text-attention-ink">Simulated</span> : null}
+      </span>
+      <span className="font-display text-[23px] leading-[1.2] text-attention-strong">
+        {WEATHER_RULE[alert.rule]} on {fmtDate(alert.forDate)}
+        {measure ? `, ${measure}` : ''}
+      </span>
+      <span className="text-[13px] text-attention-ink">{state ? `${task?.title ?? 'The check'}: ${state}` : alert.message}</span>
+    </Link>
   );
 }

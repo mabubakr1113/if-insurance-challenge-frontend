@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PrintButton } from '@/components/print-button';
-import { btnSecondary, link } from '@/components/styles';
-import { Card, Notice } from '@/components/ui';
+import { link } from '@/components/styles';
+import { ToastOnLoad } from '@/components/toaster';
+import { BackLink } from '@/components/ui';
 import { VisitReport } from '@/components/visit-report';
 import type { Visit } from '@/lib/contract';
 import { fmtCount, fmtDateTime } from '@/lib/format';
@@ -16,35 +17,36 @@ export default async function VisitPage({ params, searchParams }: PageProps<'/ho
   await requireMember(homeId);
   const visit = await read<Visit>(`/api/visits/${visitId}`);
   const base = `/homes/${homeId}`;
+  const partner = visit.visitorType === 'partner';
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-[820px] flex-col gap-5">
       {isNew === '1' ? (
-        <Notice tone="ok" role="status">
-          Visit saved. {fmtCount(visit.completedTasks.length, 'task')} completed, {fmtCount(visit.followUpTasks.length, 'follow-up')} created.
-        </Notice>
+        <ToastOnLoad
+          message={`Visit recorded. ${fmtCount(visit.completedTasks.length, 'task')} closed, ${fmtCount(visit.followUpTasks.length, 'follow-up')} added.`}
+          removeParams={['new']}
+        />
       ) : null}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Visit on {fmtDateTime(visit.visitedAt, { year: true })} by {visit.visitorName}
-        </h1>
-        {visit.bookingId ? (
-          <p className="mt-1">
+      <BackLink href={`${base}/visits`}>Visits</BackLink>
+      <div className="flex flex-col gap-2">
+        <span className="text-sm text-muted">
+          {partner && visit.bookingId ? (
             <Link href={`${base}/help/${visit.bookingId}`} className={link}>
               Local partner visit
             </Link>
-          </p>
-        ) : null}
+          ) : partner ? (
+            'Local partner visit'
+          ) : (
+            'Family visit'
+          )}{' '}
+          · {visit.visitorName}
+        </span>
+        <h1 className="font-display text-[38px] leading-[1.1] font-normal tracking-[-0.025em]">{fmtDateTime(visit.visitedAt)}</h1>
       </div>
-      <Card>
-        <VisitReport visit={visit} homeId={homeId} />
-      </Card>
-      <p className="text-sm text-muted">This report records what the visitor saw. It isn’t an insurance decision.</p>
-      <div className="no-print flex flex-wrap gap-2">
-        <PrintButton />
-        <Link href={`${base}/visits`} className={btnSecondary}>
-          Back to visits
-        </Link>
+      <VisitReport visit={visit} homeId={homeId} />
+      <div className="no-print flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[13px] text-muted">This report records what the visitor saw. It isn’t an insurance decision.</p>
+        <PrintButton label="Print the report" size="sm" />
       </div>
     </div>
   );
